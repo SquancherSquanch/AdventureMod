@@ -7,7 +7,7 @@
     <ProjectGuid>{4B831EDC-DBBB-4B27-8EDB-8AB6E5EF4388}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Plugin.Squancher.TestMod</RootNamespace>
+    <RootNamespace>Plugin.Squancher.AdventureMod</RootNamespace>
     <AssemblyName>plugin</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
