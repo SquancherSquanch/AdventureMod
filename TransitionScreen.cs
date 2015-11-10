@@ -9,7 +9,6 @@ using Timber_and_Stone.API.Event;
 using Timber_and_Stone.Event;
 using Timber_and_Stone.API.Event.Task;
 using Timber_and_Stone.Profession.Human;
-using UnityEngine;
 using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
@@ -23,7 +22,7 @@ namespace Plugin.Squancher.AdventureMod
         {
 
         }
-
+         
         public static void OpenWindow()
         {
             BattleStartMenu._open = true;
@@ -237,7 +236,7 @@ namespace Plugin.Squancher.AdventureMod
         
         public Rect windowRect;
         private float intendedWindowWidth = Screen.width;
-        private Vector2 horizontalScrollPosition;
+        //private Vector2 horizontalScrollPosition;
         public Rect windowViewRect;
         public static float countdown;
 

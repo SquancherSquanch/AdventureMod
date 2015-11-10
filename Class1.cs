@@ -10,11 +10,10 @@ using Timber_and_Stone.API.Event;
 using Timber_and_Stone.Event;
 using Timber_and_Stone.API.Event.Task;
 using Timber_and_Stone.Profession.Human;
-using UnityEngine;
 using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
-namespace Plugin.Squancher.AdventureMod
+namespace Plugin.Squancher.AdventureMod 
 {
     public class PluginMain : CSharpPlugin, IEventListener
     {
@@ -40,11 +39,6 @@ namespace Plugin.Squancher.AdventureMod
             GUIManager.getInstance().AddTextLine("Adventure Mod Enabled");
             EventManager.getInstance().Register(this);
             GUIManager.getInstance().AddTextLine("Adventure Mod Registered Events");
-            if (!AdventureMap.isMapCreated)
-            {
-                AManager<MapManager>.getInstance().CreateWorldMap();
-                AdventureMap.isMapCreated = true;
-            }
         }
 
         [EventHandler(Priority.Monitor)]
@@ -70,6 +64,12 @@ namespace Plugin.Squancher.AdventureMod
             if (File == "")
             {
                 File = worldManager.settlementName.ToString() + ".tass.gz";
+            }
+
+            if (!AdventureMap.isMapCreated)
+            {
+                AManager<MapManager>.getInstance().CreateWorldMap();
+                AdventureMap.isMapCreated = true;
             }
 
             if (BattleManager.isStartingFight)

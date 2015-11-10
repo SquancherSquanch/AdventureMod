@@ -9,11 +9,10 @@ using Timber_and_Stone.API.Event;
 using Timber_and_Stone.Event;
 using Timber_and_Stone.API.Event.Task;
 using Timber_and_Stone.Profession.Human;
-using UnityEngine;
 using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
-namespace Plugin.Squancher.AdventureMod
+namespace Plugin.Squancher.AdventureMod 
 {
     public class Draftees : IEquatable<Draftees>
     {
@@ -487,13 +486,15 @@ namespace Plugin.Squancher.AdventureMod
         {
             if (Input.GetKeyDown(KeyCode.J))
             {
-                
+                ResourceManager.getInstance().AddResource(0, 10);
+                ResourceManager.getInstance().AddResource(4, 10);
+                //ResourceManager.getInstance().currentStored[ResourceManager.getInstance().resources[0].storageIndex] += (float)this.materials[j] * this.resources[j].mass;
                 //BattleOverMenu.OpenWindow();
             }
 
             if (Input.GetKeyDown(KeyCode.N))
             {
-                //GUIManager.getInstance().AddTextLine("Clear!");
+                GUIManager.getInstance().AddTextLine( ResourceManager.getInstance().resources[0].storageIndex+" : "+ ResourceManager.getInstance().resources[0].value);
                 //BattleManager.Reward(1);
             }
 

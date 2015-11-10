@@ -9,11 +9,10 @@ using Timber_and_Stone.API.Event;
 using Timber_and_Stone.Event;
 using Timber_and_Stone.API.Event.Task;
 using Timber_and_Stone.Profession.Human;
-using UnityEngine;
 using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
-namespace Plugin.Squancher.AdventureMod
+namespace Plugin.Squancher.AdventureMod 
 {
     public class Reward : IEquatable<Reward>
     {
@@ -360,6 +359,8 @@ namespace Plugin.Squancher.AdventureMod
                         aPlayableEntity.transform.position = new Vector3(battleManager.CheckPosition().x + (float)UnityEngine.Random.Range(-1, 1), AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], array2[1]).y + 0.1f, battleManager.CheckPosition().z + (float)UnityEngine.Random.Range(-1, 1));
                         aPlayableEntity.coordinate = Coordinate.FromWorld(aPlayableEntity.transform.position);
                         isPlaced = true;
+                        battleManager =  new BattleManager();
+                        battleManager.EnemyCount = GetEnemyRemaining();
                         GUIManager.getInstance().inGame = true;
                     }
                 }
@@ -400,11 +401,6 @@ namespace Plugin.Squancher.AdventureMod
             Vector3 vector = a + array[2];
             Vector3 vector2 = AManager<ChunkManager>.getInstance().GetWorldPosition(array[0], vector);
             return vector2;
-        }
-
-        public void RewardScreen()
-        {
-            
         }
 
         public static void Reward(int clear = 0)
@@ -557,9 +553,12 @@ namespace Plugin.Squancher.AdventureMod
             }
         }
 
-        public void RollOdds()
+        public void TransferLoot()
         {
-            // coin - food - raw - proc - weap - armor
+            for (int i = 0; i < rewards.Count; i++)
+            {
+                ResourceManager.getInstance().AddResource(rewards.Find(x => x.id == i).itemid, rewards.Find(x => x.id == i).amount);
+            }
         }
         public void LoadBattle()
         {
@@ -579,7 +578,6 @@ namespace Plugin.Squancher.AdventureMod
             GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
             GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
             AManager<WorldManager>.getInstance().SpawnInvasion();
-            EnemyCount = GetEnemyRemaining();
         }
 
         public void LoadHome()
@@ -665,6 +663,7 @@ namespace Plugin.Squancher.AdventureMod
                     PartyMenu.ManageParty(1);
                     LoadHome();
                     PartyMenu.ManageParty(2);
+                    TransferLoot();
                 }
                 else if (GetEnemyRemaining() <= 0 && !isArrivingTown)
                 {
