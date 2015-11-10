@@ -13,8 +13,39 @@ using UnityEngine;
 using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
-namespace Plugin.Squancher.TestMod
+namespace Plugin.Squancher.AdventureMod
 {
+    public class Draftees : IEquatable<Draftees>
+    {
+        public int UnitId { get; set; }
+        public string uName { get; set; }
+        public float Health { get; set; }
+        public int Experience { get; set; }
+        public bool isEnlisted { get; set; }
+
+        public override string ToString()
+        {
+            return "ID: " + UnitId + "   Name: " + uName + "   Health: " + Health + "   Experience: " + Experience + "   Enlisted: " + isEnlisted;
+        }
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            Draftees objAsPart = obj as Draftees;
+            if (objAsPart == null) return false;
+            else return Equals(objAsPart);
+        }
+        public override int GetHashCode()
+        {
+            return UnitId;
+        }
+        public bool Equals(Draftees other)
+        {
+            if (other == null) return false;
+            return (this.UnitId.Equals(other.UnitId));
+        }
+        // Should also override == and != operators.
+    }
+
     public class PartyMenu : MonoBehaviour
     {
         private bool _open;
@@ -417,7 +448,7 @@ namespace Plugin.Squancher.TestMod
                     if (Time.timeSinceLevelLoad < 12)
                     {
                         float timeremaining = 12f - Time.timeSinceLevelLoad;
-                        GUIManager.getInstance().AddTextLine("Please wait while game loads:" + (double)timeremaining);
+                        GUIManager.getInstance().AddTextLine("Please wait while game loads:" + timeremaining);
                     }
                     else
                     {
@@ -432,7 +463,11 @@ namespace Plugin.Squancher.TestMod
 
         public void OnGUI()
         {
-            
+            if (GUIManager.getInstance().unitList.isOpen())
+            {
+                CloseWindow();
+                return;
+            }
             if (!this.guiMgr.inGame)
             {
                 return;
@@ -442,8 +477,8 @@ namespace Plugin.Squancher.TestMod
                 return;
             }
             this.windowRect.width = Mathf.Min(this.intendedWindowWidth, (float)(Screen.width - 4));
-            this.windowRect = GUI.Window(90, this.windowRect, new GUI.WindowFunction(this.RenderWindow), string.Empty, this.guiMgr.hiddenButtonStyle);
-            GUI.FocusWindow(90);
+            this.windowRect = GUI.Window(190, this.windowRect, new GUI.WindowFunction(this.RenderWindow), string.Empty, this.guiMgr.hiddenButtonStyle);
+            GUI.FocusWindow(190);
             this.windowRect.x = Mathf.Clamp(this.windowRect.x, 2f, (float)Screen.width - this.windowRect.width - 2f);
             this.windowRect.y = Mathf.Clamp(this.windowRect.y, 40f, (float)Screen.height - this.windowRect.height - 2f);
         }
@@ -451,8 +486,25 @@ namespace Plugin.Squancher.TestMod
         public void Update()
         {
             if (Input.GetKeyDown(KeyCode.J))
-            { 
-                GUIManager.getInstance().AddTextLine(this.guiMgr.weaponsSortType.Length + " : " + this.guiMgr.armorSortType.Length + " : " + this.guiMgr.rawMatsSortType.Length + " : " + this.guiMgr.indexesProcessedMats.Count); 
+            {
+                
+                //BattleOverMenu.OpenWindow();
+            }
+
+            if (Input.GetKeyDown(KeyCode.N))
+            {
+                //GUIManager.getInstance().AddTextLine("Clear!");
+                //BattleManager.Reward(1);
+            }
+
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                GUIManager.getInstance().AddTextLine("" + draftees.Count);
+                /*BattleManager.Reward();
+                for (int i = 0; i < BattleManager.bonusLoot; i++)
+                {
+                    GUIManager.getInstance().AddTextLine(""+ BattleManager.bonusLoot +" : " + BattleManager.rewards.Count +" : " + BattleManager.rewards.Find(x => x.id == i).type + " : " + +BattleManager.rewards.Find(x => x.id == i).itemid + " : " + BattleManager.rewards.Find(x => x.id == i).amount);
+                }*/
             }
 
             if (Input.GetKeyDown(KeyCode.K))

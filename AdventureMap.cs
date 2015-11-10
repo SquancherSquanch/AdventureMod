@@ -13,7 +13,7 @@ using UnityEngine;
 using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
-namespace Plugin.Squancher.TestMod
+namespace Plugin.Squancher.AdventureMod
 {
     public class AdventureMap : MonoBehaviour
     {
@@ -62,8 +62,8 @@ namespace Plugin.Squancher.TestMod
                 Screen.lockCursor = true;
             }
             Rect rect = new Rect(0f, 0f, Screen.width, Screen.height);
-            Rect windowRect = GUI.Window(92, rect, new GUI.WindowFunction(this.RenderWindow), string.Empty, GUIManager.getInstance().hiddenButtonStyle);
-            GUI.FocusWindow(92);
+            Rect windowRect = GUI.Window(192, rect, new GUI.WindowFunction(this.RenderWindow), string.Empty, GUIManager.getInstance().hiddenButtonStyle);
+            GUI.FocusWindow(192);
         }
 
         public void Update()

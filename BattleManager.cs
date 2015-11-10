@@ -13,48 +13,48 @@ using UnityEngine;
 using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
-namespace Plugin.Squancher.TestMod
+namespace Plugin.Squancher.AdventureMod
 {
-    public class Draftees : IEquatable<Draftees>
+    public class Reward : IEquatable<Reward>
     {
-        public int UnitId { get; set; }
-        public string uName { get; set; }
-        public float Health { get; set; }
-        public int Experience { get; set; }
-        public bool isEnlisted { get; set; }
+        public int id { get; set; }
+        public int type { get; set; }
+        public int itemid { get; set; }
+        public int amount { get; set; }
 
         public override string ToString()
         {
-            return "ID: " + UnitId + "   Name: " + uName + "   Health: " + Health + "   Experience: " + Experience + "   Enlisted: " + isEnlisted;
+            return "ID: " + id + "Type: " + type + "ID: " + itemid + "   Amount: " + amount;
         }
         public override bool Equals(object obj)
         {
             if (obj == null) return false;
-            Draftees objAsPart = obj as Draftees;
+            Reward objAsPart = obj as Reward;
             if (objAsPart == null) return false;
             else return Equals(objAsPart);
         }
         public override int GetHashCode()
         {
-            return UnitId;
+            return id;
         }
-        public bool Equals(Draftees other)
+        public bool Equals(Reward other)
         {
             if (other == null) return false;
-            return (this.UnitId.Equals(other.UnitId));
+            return (this.id.Equals(other.id));
         }
         // Should also override == and != operators.
     }
 
     public class BattleManager : MonoBehaviour
     {
-        public static bool bAdventureMapOpen, isMapCreated, isStartingFight, isFighting, isPlacingUnits, isPlaced, isBattleOver, isFromTown, isToTown, isArrivingTown, isInTown;
+        public static int time;
+        public static bool bAdventureMapOpen, bReward, isMapCreated, isStartingFight, isFighting, isPlacingUnits, isPlaced, isBattleOver, isFromTown, isToTown, isArrivingTown, isInTown;
         GUIManager guiMgr = GUIManager.getInstance();
         GameSave gamesave;
         private bool reverseSort;
         public static string invasion;
-        public APlayableEntity[] warPartyEntity = Enumerable.ToArray<APlayableEntity>(Enumerable.Where<APlayableEntity>(Enumerable.OfType<APlayableEntity>(AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units), (APlayableEntity unit) => unit.isAlive()));
-
+        public static List<Reward> rewards = new List<Reward>();
+        public static int bonusLoot, foodAmount, coinAmount;
         public enum SortType
         {
             NONE,
@@ -62,13 +62,14 @@ namespace Plugin.Squancher.TestMod
             PROFESSION
         }
 
+        
+
         public UnitList.SortType sortType;
         private Dictionary<Type, string> professionList = new Dictionary<Type, string>();
         public Type professionSort;
         public float bounty1, bounty2;
         public int reward1, reward2 , EnemyCount;
-        public float time = 0;
-        public bool bReward;
+        
 
         private BattleManager()
         {
@@ -406,50 +407,159 @@ namespace Plugin.Squancher.TestMod
             
         }
 
-        public void Reward()
+        public static void Reward(int clear = 0)
         {
-            /*********
-                food 4
-                bones 6
-                feathers 7
-                spider silk 8
-                coal 9
-                animal hide 10 
-                animal fur 11
-                fat 12
-                flax fiber 14
-                cotton 15
-                scrap metal 18
-                tin ore 19
-                copper ore 20
-                iron ore 21
-                silver ore 22
-                gold ore 23
-                mithril ore 24
+            if (clear == 1)
+            {
+                rewards.Clear();
+                return;
+            }
+            rewards.Clear();
+            bonusLoot = UnityEngine.Random.Range(1, 7);
 
-                twine 42
-                rope 43
-                cloth 46
-                leather 47
-                standard ingot 42
-                solid ingot 53
-                strong ingot 54
-                coin 55
+            foodAmount = UnityEngine.Random.Range(10,75);
+            coinAmount = UnityEngine.Random.Range(5,30);
+            for (int i = 0; i < bonusLoot; i++)
+            {
+                int lootTableRoll = UnityEngine.Random.Range(1, 100);
+                int type, itemID, amount;
+                //weapon armor
+                if (lootTableRoll < 20)
+                {
+                    type = UnityEngine.Random.Range(0, 4);
+                    amount = 1;
+                    //weapon
+                    if (type == 0)
+                    {
+                        itemID = UnityEngine.Random.Range(0, 16);
 
+                        if (rewards.Exists(x => x.itemid == itemID))
+                        {
+                            rewards.Find(x => x.itemid == itemID).amount += amount;
+                            continue;
+                        }
+                        rewards.Add(new Reward() { id = i, type = 0, itemid = itemID, amount = amount });
+                    }
+                    //armor
+                    if (type == 1)
+                    {
+                        itemID = UnityEngine.Random.Range(0, 20);
+                        if (rewards.Exists(x => x.itemid == itemID))
+                        {
+                            rewards.Find(x => x.itemid == itemID).amount += amount;
+                            continue;
+                        }
+                        rewards.Add(new Reward() { id = i, type = 1, itemid = itemID, amount = amount });
+                    }
+                    //mithril
+                    if (type == 2)
+                    {
+                        if (lootTableRoll < 50)
+                        {
+                            itemID = 22;
+                            amount = UnityEngine.Random.Range(1, 6);
+                            if (rewards.Exists(x => x.itemid == itemID))
+                            {
+                                rewards.Find(x => x.itemid == itemID).amount += amount;
+                                continue;
+                            }
+                            rewards.Add(new Reward() { id = i, type = 2, itemid = itemID, amount = amount });
+                        }
 
-            Resource weapons = Resource.FromID(this.guiMgr.weaponsSortType[1]);
-                GUI.DrawTexture(position4, resource5.icon);
+                        amount = UnityEngine.Random.Range(1,4);
+                        if (lootTableRoll > 90)
+                        {
+                            itemID = 11;
+                            type = 2;
+                        }
+                        else
+                        {
+                            itemID = 23;
+                            type = 3;
+                        }
+                        if (rewards.Exists(x => x.itemid == itemID))
+                        {
+                            rewards.Find(x => x.itemid == itemID).amount += amount;
+                            continue;
+                        }
+                        rewards.Add(new Reward() { id = i, type = type, itemid = itemID, amount = amount });
+                    }
+                    //gold
+                    if (type == 3)
+                    {
+                        itemID = 22;
+                        amount = UnityEngine.Random.Range(1, 6);
+                        if (rewards.Exists(x => x.itemid == itemID))
+                        {
+                            rewards.Find(x => x.itemid == itemID).amount += amount;
+                            continue;
+                        }
+                        rewards.Add(new Reward() { id = i, type = 2, itemid = itemID, amount = amount });
+                    }
+                    //silver
+                    if (type == 4)
+                    {
+                        itemID = 21;
+                        amount = UnityEngine.Random.Range(1, 8);
+                        if (rewards.Exists(x => x.itemid == itemID))
+                        {
+                            rewards.Find(x => x.itemid == itemID).amount += amount;
+                            continue;
+                        }
+                        rewards.Add(new Reward() { id = i, type = 2, itemid = itemID, amount = amount });
+                    }
+                }
 
-            Resource armor = Resource.FromID(this.guiMgr.armorSortType[1]);
-            Resource rawMats = Resource.FromID(this.guiMgr.rawMatsSortType[1]);
-            Resource pMats = Resource.FromID(this.guiMgr.craftSortType[1]);
-            **********/
-            
+                //processed mats
+                if (lootTableRoll > 19 && lootTableRoll < 50)
+                {
+                    itemID = UnityEngine.Random.Range(0, 3); //7-10
+
+                    if (itemID == 0) { itemID = 7; }
+                    if (itemID == 1) { itemID = 8; }
+                    if (itemID == 2) { itemID = 9; }
+                    if (itemID == 3) { itemID = 10; }
+
+                    amount = UnityEngine.Random.Range(1, 16);
+                    if (rewards.Exists(x => x.itemid == itemID))
+                    {
+                        rewards.Find(x => x.itemid == itemID).amount += amount;
+                        continue;
+                    }
+                        rewards.Add(new Reward() { id = i, type = 2, itemid = itemID, amount = amount });
+                }
+                //raw mats
+                if (lootTableRoll > 49)
+                {
+                    itemID = UnityEngine.Random.Range(0, 12); //6-10 4, 12 - 15 3, 17-20 3
+
+                    if (itemID == 0) { itemID = 6; }
+                    if (itemID == 1) { itemID = 7; }
+                    if (itemID == 2) { itemID = 8; }
+                    if (itemID == 3) { itemID = 9; }
+                    if (itemID == 4) { itemID = 10; }
+                    if (itemID == 5) { itemID = 12; }
+                    if (itemID == 6) { itemID = 13; }
+                    if (itemID == 7) { itemID = 14; }
+                    if (itemID == 8) { itemID = 15; }
+                    if (itemID == 9) { itemID = 17; }
+                    if (itemID == 10) { itemID = 18; }
+                    if (itemID == 11) { itemID = 19; }
+                    if (itemID == 12) { itemID = 20; }
+                    amount = UnityEngine.Random.Range(1, 16);
+                    if (rewards.Exists(x => x.itemid == itemID))
+                    {
+                        rewards.Find(x => x.itemid == itemID).amount += amount;
+                        continue;
+                    }
+                    rewards.Add(new Reward() { id = i, type = 3, itemid = itemID, amount = amount });
+                }
+            }
         }
 
         public void RollOdds()
         {
-
+            // coin - food - raw - proc - weap - armor
         }
         public void LoadBattle()
         {
@@ -540,91 +650,14 @@ namespace Plugin.Squancher.TestMod
             return eNum;
         }
 
-        public void RenderWindow(int windowID)
-        {
-            if (isPlacingUnits)
-            {
-                Rect location6 = new Rect((float)(Screen.width / 2 - 270), 32f, 580f, 180f);
-                GUIManager.getInstance().DrawWindow(location6, "Fight Initiated!", false);
-                GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 30f, location6.width - 16f, 110f), "Left click to place party!");
-                isStartingFight = false;
-            }
-
-            if (bReward)
-            {
-                AManager<TimeManager>.getInstance().pause();
-                Rect location6 = new Rect((float)(Screen.width / 2 - 290), Screen.height / 2, 580f, 180f);
-                GUIManager.getInstance().DrawWindow(location6, "Battle Summary", false);
-                GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 30f, location6.width - 16f, 110f), "");
-
-                int num = 0;
-                int num2 = 0;
-
-                Resource rawMats = Resource.FromID(this.guiMgr.rawMatsSortType[0]);
-                GUI.DrawTexture(new Rect(Screen.width / 2 - 133f, Screen.height / 2 + 88f, 24f, 24f), rawMats.icon);
-                GUIManager.getInstance().DrawTextCenteredWhite(new Rect(Screen.width / 2 - 79f, Screen.height / 2 + 88f, 50f, 24f), "100");
-
-                Resource pMats = Resource.FromID(this.guiMgr.indexesProcessedMats[0]);
-                GUI.DrawTexture(new Rect(Screen.width / 2 - 54f, Screen.height / 2 + 88f, 24f, 24f), pMats.icon);
-                GUIManager.getInstance().DrawTextCenteredWhite(new Rect(Screen.width / 2 - 25f, Screen.height / 2 + 88f, 50f, 24f), "100");
-                //Note: this was cut off for methods
-                if (invasion == "wolf")
-                {
-                    //EnemyCount
-                    Resource animalRawMats = Resource.FromID(this.guiMgr.rawMatsSortType[9]);
-                    GUI.DrawTexture(new Rect(Screen.width / 2 - 36f, Screen.height / 2 + 55f, 24f, 24f), animalRawMats.icon);
-
-                    animalRawMats = Resource.FromID(this.guiMgr.rawMatsSortType[10]);
-                    GUI.DrawTexture(new Rect(Screen.width / 2 - 12f, Screen.height / 2 + 55f, 24f, 24f), animalRawMats.icon);
-
-                    animalRawMats = Resource.FromID(this.guiMgr.rawMatsSortType[11]);
-                    GUI.DrawTexture(new Rect(Screen.width / 2 + 36f, Screen.height / 2 + 55f, 24f, 24f), animalRawMats.icon);
-
-                }
-                else if (invasion == "spider")
-                {
-                    //EnemyCount
-                    Resource animalRawMats = Resource.FromID(this.guiMgr.rawMatsSortType[7]);
-                    GUI.DrawTexture(new Rect(Screen.width / 2 - 12, Screen.height / 2 + 55f, 24f, 24f), animalRawMats.icon);
-
-                }
-                else
-                {
-                    if (bounty1 > 0.8f)
-                    {
-                        Resource weapons = Resource.FromID(this.guiMgr.weaponsSortType[reward1]);
-                        GUI.DrawTexture(new Rect(Screen.width / 2 + 16f, Screen.height / 2 + 88f, 25f, 25f), weapons.icon);
-                        GUIManager.getInstance().DrawTextCenteredWhite(new Rect(Screen.width / 2 + 16f, Screen.height / 2 + 88f, 50f, 24f), "100");
-                    }
-                    if (bounty2 > 0.8f)
-                    {
-                        Resource armor = Resource.FromID(this.guiMgr.armorSortType[reward2]);
-                        GUI.DrawTexture(new Rect(Screen.width / 2 + 49f, Screen.height / 2 + 88f, 25f, 25f), armor.icon);
-                    }
-            }
-
-            if (this.guiMgr.DrawButton(new Rect(Screen.width / 2 - 71f, Screen.height / 2 + 138, 142f, 32f), "Ok"))
-            {
-                if (isToTown == false)
-                {
-                    isBattleOver = false;
-                    isToTown = true;
-                    AManager<TimeManager>.getInstance().pause();
-                    if (!TransitionScreen.IsOpen())
-                    {
-                        TransitionScreen.OpenWindow();
-                        AdventureMap.OpenWindow();
-                        time = 0;
-                        bReward = false;
-                    }
-                }
-            }
-        }
-    }
-
         public void OnGUI()
         {
-            
+
+            if (isPlacingUnits)
+            {
+                BattleStartMenu.OpenWindow();
+            }
+
             if (isFighting && isPlaced)
             {
                 if (isArrivingTown)
@@ -637,10 +670,7 @@ namespace Plugin.Squancher.TestMod
                 {
                     if (!isBattleOver)
                     {
-                        bounty1 = UnityEngine.Random.Range(0.0f, 1.0f);
-                        bounty2 = UnityEngine.Random.Range(0.0f, 1.0f);
-                        reward1 = (int)UnityEngine.Random.Range(0f, 17f);
-                        reward2 = (int)UnityEngine.Random.Range(0f, 20f);
+                        Reward();
                         isBattleOver = true;
                     }
                     else
@@ -648,7 +678,7 @@ namespace Plugin.Squancher.TestMod
                         time++;
                         if (time >= 500f)
                         {
-                            bReward = true;
+                            BattleOverMenu.OpenWindow();
                         }
                     }
                 }
@@ -675,6 +705,7 @@ namespace Plugin.Squancher.TestMod
                 if (isPlacingUnits)
                 {
                     isPlacingUnits = false;
+                    BattleStartMenu.CloseWindow();
                     PrepBattleField(1);
                     GUIManager.getInstance().inGame = true;
                 }

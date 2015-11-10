@@ -13,7 +13,7 @@ using UnityEngine;
 using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
-namespace Plugin.Squancher.TestMod
+namespace Plugin.Squancher.AdventureMod
 {
     public class Messenger : MonoBehaviour
     {

@@ -14,7 +14,7 @@ using UnityEngine;
 using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
-namespace Plugin.Squancher.TestMod
+namespace Plugin.Squancher.AdventureMod
 {
     public class PluginMain : CSharpPlugin, IEventListener
     {
@@ -31,6 +31,8 @@ namespace Plugin.Squancher.TestMod
             GUIManager.getInstance().gameObject.AddComponent(typeof(Draftees));
             GUIManager.getInstance().gameObject.AddComponent(typeof(TransitionScreen));
             GUIManager.getInstance().gameObject.AddComponent(typeof(Messenger));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(BattleOverMenu));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(BattleStartMenu));
         }
 
         public override void OnEnable()
@@ -51,6 +53,7 @@ namespace Plugin.Squancher.TestMod
             if (evt.invasion.getName() == "wolf" || evt.invasion.getName() == "spider" || evt.invasion.getName() == "skeleton" || evt.invasion.getName() == "necromancer" || evt.invasion.getName() == "goblin")
             {
                 GUIManager.getInstance().AddTextLine("A " + evt.invasion.getName() + " has found you!");
+                BattleOverMenu.invasion = evt.invasion.getName();
                 BattleManager.invasion = evt.invasion.getName();
             }
             if (evt.invasion.getName() == "wolves" || evt.invasion.getName() == "spiders" || evt.invasion.getName() == "skeletons" || evt.invasion.getName() == "goblins")
@@ -81,7 +84,7 @@ namespace Plugin.Squancher.TestMod
                 BattleManager.isPlacingUnits = true;
             }
 
-            if (PartyMenu.draftees.Count == 0)
+            if (PartyMenu.draftees.Count <= 0)
             {
                 PartyMenu.ManageParty(0);
             }
