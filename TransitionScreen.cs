@@ -17,6 +17,8 @@ namespace Plugin.Squancher.AdventureMod
     public class BattleStartMenu : MonoBehaviour
     {
         public static bool _open;
+        public Rect windowRect;
+        private float intendedWindowWidth = 180f;
 
         private BattleStartMenu()
         {
@@ -40,6 +42,11 @@ namespace Plugin.Squancher.AdventureMod
 
         public void RenderWindow(int windowID)
         {
+            Rect location = new Rect(0f, 0f, this.windowRect.width, this.windowRect.height);
+            if (location.Contains(Event.current.mousePosition))
+            {
+                GUIManager.getInstance().mouseInGUI = true;
+            }
             Rect location6 = new Rect((float)(Screen.width / 2 - 270), 32f, 580f, 180f);
             GUIManager.getInstance().DrawWindow(location6, "Fight Initiated!", false);
             GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 30f, location6.width - 16f, 110f), "Left click to place party!");
@@ -66,6 +73,8 @@ namespace Plugin.Squancher.AdventureMod
     {
         public static bool _open;
         public static string invasion;
+        public Rect windowRect;
+        private float intendedWindowWidth = 200f;
 
         private BattleOverMenu()
         {
@@ -94,8 +103,14 @@ namespace Plugin.Squancher.AdventureMod
 
         public void RenderWindow(int windowID)
         {
+            Rect location = new Rect(0f, 0f, this.windowRect.width, this.windowRect.height);
+            if (location.Contains(Event.current.mousePosition))
+            {
+                GUIManager.getInstance().mouseInGUI = true;
+            }
+
             AManager<TimeManager>.getInstance().pause();
-            Rect location = new Rect((Screen.width / 2 - 240f), Screen.height / 2 - 90f, 480f, 200f);
+            location = new Rect((Screen.width / 2 - 240f), Screen.height / 2 - 90f, 480f, 200f);
             GUIManager.getInstance().DrawWindow(location, "Battle Summary", false);
             GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location.xMin + 8f, location.yMin + 30f, location.width - 16f, 110f), "You found!");
 

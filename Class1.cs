@@ -31,7 +31,7 @@ namespace Plugin.Squancher.AdventureMod
             GUIManager.getInstance().gameObject.AddComponent(typeof(TransitionScreen));
             GUIManager.getInstance().gameObject.AddComponent(typeof(Messenger));
             GUIManager.getInstance().gameObject.AddComponent(typeof(BattleOverMenu));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(BattleStartMenu));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(MessengerMenu));
         }
 
         public override void OnEnable()
@@ -39,6 +39,28 @@ namespace Plugin.Squancher.AdventureMod
             GUIManager.getInstance().AddTextLine("Adventure Mod Enabled");
             EventManager.getInstance().Register(this);
             GUIManager.getInstance().AddTextLine("Adventure Mod Registered Events");
+        }
+
+        [EventHandler(Priority.Monitor)]
+        public void onEntityDeathMonitor(EventEntityDeath evt)
+        {
+            string deadDraftee = evt.getUnit().unitName;
+            PartyMenu.draftees.Remove(PartyMenu.draftees.Find(x => x.uName == deadDraftee));
+        }
+
+        [EventHandler(Priority.Monitor)]
+        public void onMigrantAcceptMonitor(EventMigrantAccept evt)
+        { 
+            if (evt.unit.unitName == "Messenger")
+            {
+                GUIManager.getInstance().AddTextLine("A messenger comes this way asking for aid.");
+            }
+            PartyMenu.draftees.Add(new Draftees() { UnitId = PartyMenu.draftees.Count, uName = evt.unit.unitName, Health = evt.unit.hitpoints, Experience = evt.unit.getProfession().currentXP, isEnlisted = false });
+        }
+
+        [EventHandler(Priority.Monitor)]
+        public void onMigrantAcceptMonitor(EventMigrantDeny evt)
+        {
         }
 
         [EventHandler(Priority.Monitor)]
@@ -78,6 +100,7 @@ namespace Plugin.Squancher.AdventureMod
                 AManager<TimeManager>.getInstance().pause();
                 Screen.lockCursor = false;
                 Screen.showCursor = true;
+                AManager<WorldManager>.getInstance().enableSaving = false;
                 GUIManager.getInstance().startMenu = "New6";
                 GUIManager.getInstance().inStartMenu = true;
                 GUIManager.getInstance().inGame = false;

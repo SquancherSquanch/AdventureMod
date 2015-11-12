@@ -17,6 +17,8 @@ namespace Plugin.Squancher.AdventureMod
     public class AdventureMap : MonoBehaviour
     {
         public static bool bAdventureMapOpen, isMapCreated;
+        public Rect windowRect;
+        private float intendedWindowWidth = Screen.width;
 
         private AdventureMap()
         {
@@ -50,19 +52,31 @@ namespace Plugin.Squancher.AdventureMod
 
         public void RenderWindow(int windowID)
         {
-
+            Rect location = new Rect(0f, 0f, this.windowRect.width, this.windowRect.height);
+            if (location.Contains(Event.current.mousePosition))
+            {
+                GUIManager.getInstance().mouseInGUI = true;
+            }
         }
 
         public void OnGUI()
         {
-            if (bAdventureMapOpen)
+            if (GUIManager.getInstance().inGame)
             {
-                Screen.showCursor = false;
-                Screen.lockCursor = true;
+                return;
             }
-            Rect rect = new Rect(0f, 0f, Screen.width, Screen.height);
-            Rect windowRect = GUI.Window(192, rect, new GUI.WindowFunction(this.RenderWindow), string.Empty, GUIManager.getInstance().hiddenButtonStyle);
+            if (!bAdventureMapOpen)
+            {
+                return;
+            }
+            Screen.showCursor = false;
+            Screen.lockCursor = true;
+            this.windowRect.width = Mathf.Min(this.intendedWindowWidth, (float)(Screen.width - 4));
+            this.windowRect = GUI.Window(192, this.windowRect, new GUI.WindowFunction(this.RenderWindow), string.Empty, GUIManager.getInstance().hiddenButtonStyle);
             GUI.FocusWindow(192);
+            this.windowRect.x = Mathf.Clamp(this.windowRect.x, 2f, (float)Screen.width - this.windowRect.width - 2f);
+            this.windowRect.y = Mathf.Clamp(this.windowRect.y, 40f, (float)Screen.height - this.windowRect.height - 2f);
+            
         }
 
         public void Update()

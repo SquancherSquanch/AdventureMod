@@ -51,6 +51,7 @@
     <Compile Include="BattleManager.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="Messenger.cs" />
+    <Compile Include="MessengerMenu.cs" />
     <Compile Include="PartyMenu.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TransitionScreen.cs" />

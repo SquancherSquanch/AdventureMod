@@ -68,6 +68,7 @@ namespace Plugin.Squancher.AdventureMod
         public Type professionSort;
         public float bounty1, bounty2;
         public int reward1, reward2 , EnemyCount;
+        public Vector3 StartPosition;
         
 
         private BattleManager()
@@ -139,164 +140,7 @@ namespace Plugin.Squancher.AdventureMod
             }
             return sortedUnits;
         }
-
-        public void CreateNewWorldUnits(Vector3 startPosition)
-        {
-            Vector3 vector = new Vector3(startPosition.x, 0f, startPosition.z);
-            Vector3 zero = Vector3.zero;
-            List<int> list = new List<int>();
-            List<Vector3> list2 = new List<Vector3>();
-            for (int i = 0; i < 8; i++)
-            {
-                int iD;
-                do
-                {
-                    zero = new Vector3((float)UnityEngine.Random.Range(-5, 6) * 0.2f, 0f, (float)UnityEngine.Random.Range(-5, 6) * 0.2f);
-                    Vector3[] array = AManager<ChunkManager>.getInstance().Pick(new Vector3(vector.x + zero.x, 48 * 0.1f - 0.1f, vector.z + zero.z), Vector3.down, false);
-                    iD = (int)AManager<ChunkManager>.getInstance().GetBlockOnTop(Coordinate.FromChunkBlock(array[0], array[1])).properties.getID();
-                }
-                while (iD >= 60 || iD <= 0 || list2.Contains(zero));
-                list2.Add(zero);
-                bool flag;
-                int num;
-                do
-                {
-                    flag = true;
-                    num = UnityEngine.Random.Range(1, 14);
-                    for (int j = 0; j < list.Count; j++)
-                    {
-                        if (num == list[j])
-                        {
-                            flag = false;
-                        }
-                    }
-                }
-                while (!flag);
-                list.Add(num);
-                if (num == 1)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("infantry", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 2)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("infantry", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 3)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("infantry", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 4)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("infantry", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 5)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("infantry", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 6)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("archer", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 7)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("infantry", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 8)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("infantry", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 9)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("archer", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 10)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("archer", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 11)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("archer", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 12)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("archer", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-                else if (num == 13)
-                {
-                    AManager<UnitManager>.getInstance().AddHumanUnit("archer", vector + zero, true, false, UnityEngine.Random.Range(0, 3) == 1);
-                }
-            }
-            GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().MoveToPosition(vector);
-            Vector3 eulerAngles = GUIManager.getInstance().controllerObj.eulerAngles;
-            eulerAngles.y = (float)UnityEngine.Random.Range(130, 210);
-            GUIManager.getInstance().controllerObj.eulerAngles = eulerAngles;
-        }
-
-        public Transform AddHumanUnit(APlayableEntity entity, Vector3 pos)
-        {
-            HumanEntity humanEntity = AManager<AssetManager>.getInstance().InstantiateUnit<HumanEntity>();
-            humanEntity.coordinate = Coordinate.FromWorld(pos);
-
-            /* messenger
-            humanEntity.faction = AManager<WorldManager>.getInstance().controllerObj.GetComponent<MigrantFactionController>();
-            humanEntity.spottedTimer = 600000f;
-            humanEntity.interruptTaskIgnoreAlive(new TaskMigrate(humanEntity));
-            */
-
-            //humanEntity.faction = AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>();
-            humanEntity.faction = AManager<WorldManager>.getInstance().controllerObj.GetComponent<MigrantFactionController>();
-            humanEntity.gender = entity.gender;
-
-            List<AProfession> list = new List<AProfession>();
-            for (int i = 1; i < entity.getProfessions().Length; i++)
-            {
-                //list.Add(entity.getProfessions()[i]);
-                humanEntity.addProfession(entity.getProfessions()[i]);
-            }
-            humanEntity.SetProfession(entity.getProfession());
-
-            AProfession profession = humanEntity.getProfession();
-            profession.setLevel(profession.getLevel());
-            humanEntity.maxHP = 100f;
-            humanEntity.hitpoints = 100f;
-            humanEntity.unitName = entity.unitName;
-
-            // messenger
-            //UnitManager.getInstance().visitors.Add(humanEntity.transform);
-
-            Vector3[] array = AManager<ChunkManager>.getInstance().Pick(new Vector3(pos.x, AManager<WorldManager>.getInstance().topHeight, pos.z), Vector3.down, false);
-            humanEntity.transform.position = new Vector3(humanEntity.transform.position.x, AManager<ChunkManager>.getInstance().GetWorldPosition(array[0], array[1]).y + 0.1f, humanEntity.transform.position.z);
-            humanEntity.fatigue = UnityEngine.Random.Range(0.7f, 1f);
-            //this.RandomUnitTraits(humanEntity);
-            humanEntity.coordinate = Coordinate.FromWorld(humanEntity.transform.position);
-            Vector3 vect3;
-            if (AManager<DesignManager>.getInstance().edgeRoads.Count == 0)
-            {
-            }
-            int num = UnityEngine.Random.Range(0, 4);
-            if (num == 0 && !AManager<DesignManager>.getInstance().edgeRoadSouth)
-            {
-                vect3 = AManager<DesignManager>.getInstance().edgeRoads[UnityEngine.Random.Range(0, AManager<DesignManager>.getInstance().edgeRoads.Count - 1)].world + Vector3.up * AManager<ChunkManager>.getInstance().voxelSize;
-            }
-            if (num == 1 && !AManager<DesignManager>.getInstance().edgeRoadNorth)
-            {
-                vect3 = AManager<DesignManager>.getInstance().edgeRoads[UnityEngine.Random.Range(0, AManager<DesignManager>.getInstance().edgeRoads.Count - 1)].world + Vector3.up * AManager<ChunkManager>.getInstance().voxelSize;
-            }
-            if (num == 2 && !AManager<DesignManager>.getInstance().edgeRoadEast)
-            {
-                vect3 = AManager<DesignManager>.getInstance().edgeRoads[UnityEngine.Random.Range(0, AManager<DesignManager>.getInstance().edgeRoads.Count - 1)].world + Vector3.up * AManager<ChunkManager>.getInstance().voxelSize;
-                //humanEntity.interruptTaskIgnoreAlive(new TaskForcedMove(humanEntity, vect3, Vector3i block));
-            }
-            if (num == 3 && !AManager<DesignManager>.getInstance().edgeRoadWest)
-            {
-                vect3 = AManager<DesignManager>.getInstance().edgeRoads[UnityEngine.Random.Range(0, AManager<DesignManager>.getInstance().edgeRoads.Count - 1)].world + Vector3.up * AManager<ChunkManager>.getInstance().voxelSize;
-                HallDesignation hallDesignation = new HallDesignation();
-                humanEntity.interruptTaskIgnoreAlive(new TaskForcedMove(humanEntity, (Vector3i)vect3, new Vector3i(hallDesignation.coordinates[0].block.x, hallDesignation.coordinates[0].block.y, hallDesignation.coordinates[0].block.z)));
-            }
-
-            return humanEntity.transform;
-        }
-
+        
         public void DestoryAll()
         {
 
@@ -317,6 +161,8 @@ namespace Plugin.Squancher.AdventureMod
                     allEntities.Destroy();
                 if (allEntities.unitName == "Chicken")
                     allEntities.Destroy();
+                //AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().selectedChunk = new Vector3(0,0,0);
+                //UnityEngine.Object.Destroy(GUIManager.getInstance().desi.designSelection..GetComponents.DestoryAll);
             }
         }
 
@@ -331,11 +177,12 @@ namespace Plugin.Squancher.AdventureMod
                 APlayableEntity aPlayableEntity = array[i];
                 if (aPlayableEntity.isAlive())
                 {
-                    //place unit before battle
-                    if (trade == 0)
+                    if (PartyMenu.draftees.Count != 0)
                     {
-                        if (PartyMenu.draftees.Count != 0)
+                        //place unit before battle
+                        if (trade == 0)
                         {
+                        
                             if (PartyMenu.draftees.Contains(new Draftees { uName = aPlayableEntity.unitName }))
                             {
                                 if (PartyMenu.draftees.Find(x => x.uName == aPlayableEntity.unitName).isEnlisted)
@@ -355,13 +202,35 @@ namespace Plugin.Squancher.AdventureMod
                     //place units on click
                     if (trade == 1)
                     {
-                        Vector3[] array2 = AManager<ChunkManager>.getInstance().Pick(new Vector3(battleManager.CheckPosition().x + (float)UnityEngine.Random.Range(-3, 3), AManager<WorldManager>.getInstance().topHeight, battleManager.CheckPosition().z + (float)UnityEngine.Random.Range(-3, 3)), Vector3.down, false);
-                        aPlayableEntity.transform.position = new Vector3(battleManager.CheckPosition().x + (float)UnityEngine.Random.Range(-1, 1), AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], array2[1]).y + 0.1f, battleManager.CheckPosition().z + (float)UnityEngine.Random.Range(-1, 1));
-                        aPlayableEntity.coordinate = Coordinate.FromWorld(aPlayableEntity.transform.position);
-                        isPlaced = true;
-                        battleManager =  new BattleManager();
-                        battleManager.EnemyCount = GetEnemyRemaining();
-                        GUIManager.getInstance().inGame = true;
+                        if (PartyMenu.draftees.Exists(x => x.uName == aPlayableEntity.unitName))
+                        {
+
+                            if (i == 0)
+                            {
+                                Vector3[] array2 = AManager<ChunkManager>.getInstance().Pick(new Vector3(battleManager.StartPosition.x, AManager<WorldManager>.getInstance().topHeight, battleManager.StartPosition.z), Vector3.down, false);
+                                aPlayableEntity.transform.position = new Vector3(battleManager.StartPosition.x, AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], array2[1]).y + 0.1f, battleManager.StartPosition.z);
+                            }
+                            if ( i==1 || i==2 )
+                            { 
+                                Vector3[] array2 = AManager<ChunkManager>.getInstance().Pick(new Vector3(battleManager.StartPosition.x + (float)UnityEngine.Random.Range(-i/2, i / 2), AManager<WorldManager>.getInstance().topHeight, battleManager.StartPosition.z + (float)UnityEngine.Random.Range(-i / 2, i / 2)), Vector3.down, false);
+                                aPlayableEntity.transform.position = new Vector3(battleManager.StartPosition.x - i / 2, AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], array2[1]).y + 0.1f, battleManager.StartPosition.z);
+                            }
+                            if ( i == 3)
+                            {
+                                Vector3[] array2 = AManager<ChunkManager>.getInstance().Pick(new Vector3(battleManager.StartPosition.x, AManager<WorldManager>.getInstance().topHeight, battleManager.StartPosition.z), Vector3.down, false);
+                                aPlayableEntity.transform.position = new Vector3(battleManager.StartPosition.x, AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], array2[1]).y + 0.1f, battleManager.StartPosition.z - 0.5f);
+                            }
+                            if( i == 4 || i == 5)
+                            {
+                                Vector3[] array2 = AManager<ChunkManager>.getInstance().Pick(new Vector3(battleManager.StartPosition.x + (float)UnityEngine.Random.Range(-i / 2, i / 2), AManager<WorldManager>.getInstance().topHeight, battleManager.StartPosition.z + (float)UnityEngine.Random.Range(-i / 2, i / 2)), Vector3.down, false);
+                                aPlayableEntity.transform.position = new Vector3(battleManager.StartPosition.x - i / 2, AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], array2[1]).y + 0.1f, battleManager.StartPosition.z - 0.5f);
+                            }
+                            aPlayableEntity.coordinate = Coordinate.FromWorld(aPlayableEntity.transform.position);
+                            isPlaced = true;
+                            battleManager = new BattleManager();
+                            battleManager.EnemyCount = GetEnemyRemaining();
+                            GUIManager.getInstance().inGame = true;
+                        }
                     }
                 }
             }
@@ -415,6 +284,7 @@ namespace Plugin.Squancher.AdventureMod
 
             foodAmount = UnityEngine.Random.Range(10,75);
             coinAmount = UnityEngine.Random.Range(5,30);
+
             for (int i = 0; i < bonusLoot; i++)
             {
                 int lootTableRoll = UnityEngine.Random.Range(1, 100);
@@ -490,7 +360,7 @@ namespace Plugin.Squancher.AdventureMod
                             rewards.Find(x => x.itemid == itemID).amount += amount;
                             continue;
                         }
-                        rewards.Add(new Reward() { id = i, type = 2, itemid = itemID, amount = amount });
+                        rewards.Add(new Reward() { id = i, type = 3, itemid = itemID, amount = amount });
                     }
                     //silver
                     if (type == 4)
@@ -502,7 +372,7 @@ namespace Plugin.Squancher.AdventureMod
                             rewards.Find(x => x.itemid == itemID).amount += amount;
                             continue;
                         }
-                        rewards.Add(new Reward() { id = i, type = 2, itemid = itemID, amount = amount });
+                        rewards.Add(new Reward() { id = i, type = 3, itemid = itemID, amount = amount });
                     }
                 }
 
@@ -553,13 +423,47 @@ namespace Plugin.Squancher.AdventureMod
             }
         }
 
-        public void TransferLoot()
+        public static void TransferLoot()
         {
+
+
+            Resource resource2 = Resource.FromID(GUIManager.getInstance().rawMatsSortType[0]);
+            WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + foodAmount);
+            resource2 = Resource.FromID(GUIManager.getInstance().indexesProcessedMats[0]);
+            WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + coinAmount);
+
             for (int i = 0; i < rewards.Count; i++)
             {
-                ResourceManager.getInstance().AddResource(rewards.Find(x => x.id == i).itemid, rewards.Find(x => x.id == i).amount);
+                int itemID = rewards.Find(x => x.id == i).itemid;
+                int type = rewards.Find(x => x.id == i).type;
+                int amount = rewards.Find(x => x.id == i).amount; 
+
+                if (type == 0)
+                {
+                    resource2 = Resource.FromID(GUIManager.getInstance().weaponsSortType[itemID]);
+                    WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
+                }
+                if (type == 1)
+                {
+                    resource2 = Resource.FromID(GUIManager.getInstance().armorSortType[itemID]);
+                    WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
+                }
+                if (type == 2)
+                {
+                    resource2 = Resource.FromID(GUIManager.getInstance().indexesProcessedMats[itemID]);
+                    WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
+                }
+                if (type == 3)
+                {
+                    resource2 = Resource.FromID(GUIManager.getInstance().rawMatsSortType[itemID]);
+                    WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
+                }
+                //WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
+                //GUIManager.getInstance().AddTextLine("Count : "+ rewards.Count +" : " + type + " : " + itemID + " : " + amount + " : " + resource2.name + " : " + WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
             }
+            rewards.Clear();
         }
+
         public void LoadBattle()
         {
             isFighting = true;
@@ -614,14 +518,12 @@ namespace Plugin.Squancher.AdventureMod
 
         public static void SendPartyOnQuest()
         {
-            //AManager<MapManager>.getInstance().HideMap();
             isFromTown = true;
             isInTown = false;
         }
 
         public static void SendPartyBackHome()
         {
-            //AManager<MapManager>.getInstance().HideMap();
             isArrivingTown = true;
             isToTown = false;
         }
@@ -664,6 +566,7 @@ namespace Plugin.Squancher.AdventureMod
                     LoadHome();
                     PartyMenu.ManageParty(2);
                     TransferLoot();
+                    AManager<WorldManager>.getInstance().enableSaving = true;
                 }
                 else if (GetEnemyRemaining() <= 0 && !isArrivingTown)
                 {
@@ -704,8 +607,9 @@ namespace Plugin.Squancher.AdventureMod
                 if (isPlacingUnits)
                 {
                     isPlacingUnits = false;
-                    BattleStartMenu.CloseWindow();
+                    StartPosition = CheckPosition();
                     PrepBattleField(1);
+                    BattleStartMenu.CloseWindow();
                     GUIManager.getInstance().inGame = true;
                 }
             }

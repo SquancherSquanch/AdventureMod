@@ -49,7 +49,7 @@ namespace Plugin.Squancher.AdventureMod
     {
         private bool _open;
         GUIManager guiMgr;
-        private bool reverseSort, openDraft;
+        private bool reverseSort, openDraft, toggle;
         private ControlPlayer controller;
         public static List<Draftees> draftees = new List<Draftees>();
 
@@ -167,7 +167,7 @@ namespace Plugin.Squancher.AdventureMod
                         continue;
                     }
 
-                    if (draftees.Contains(new Draftees { uName = aPlayableEntity.unitName }))
+                    if (draftees.Exists(x=> x.uName == aPlayableEntity.unitName))//new Draftees { uName = aPlayableEntity.unitName }))
                     {
                         //set to for transfer
                         if (trade == 1)
@@ -191,6 +191,12 @@ namespace Plugin.Squancher.AdventureMod
                                 aPlayableEntity.getProfession().setExperience(draftees.Find(x => x.uName == aPlayableEntity.unitName).Experience);
                             }
                         }
+                    }
+                    else
+                    {
+                        //note: i might need to clear() and re establish draftees list here
+                        aPlayableEntity.Destroy();
+                        ManageParty(0);
                     }
                 }
             }
@@ -245,6 +251,11 @@ namespace Plugin.Squancher.AdventureMod
                 this.guiMgr.DrawWindow(location, "Party Menu", false);
                 if (GUI.Button(new Rect(location.xMax - 24f, location.yMin + 4f, 20f, 20f), string.Empty, this.guiMgr.closeWindowButtonStyle))
                 {
+                    if (openDraft)
+                    {
+                        openDraft = false;
+                        return;
+                    }
                     this.CloseWindow();
                     return;
                 }
@@ -443,7 +454,11 @@ namespace Plugin.Squancher.AdventureMod
 
                 if (this.guiMgr.DrawButton(new Rect(500f - 157f, 280f, 142f, 32f), "Send Party"))
                 {
-                    this.CloseWindow();
+                    if(PartySize <= 0)
+                    {
+                        GUIManager.getInstance().AddTextLine("Can't leave for battle with no troops!");
+                        return;
+                    }
                     if (Time.timeSinceLevelLoad < 12)
                     {
                         float timeremaining = 12f - Time.timeSinceLevelLoad;
@@ -451,6 +466,7 @@ namespace Plugin.Squancher.AdventureMod
                     }
                     else
                     {
+                        this.CloseWindow();
                         AManager<WorldManager>.getInstance().SaveGame();
                         AManager<TimeManager>.getInstance().pause();
                         TransitionScreen.OpenWindow();
@@ -484,28 +500,46 @@ namespace Plugin.Squancher.AdventureMod
 
         public void Update()
         {
+            /*
             if (Input.GetKeyDown(KeyCode.J))
             {
-                ResourceManager.getInstance().AddResource(0, 10);
-                ResourceManager.getInstance().AddResource(4, 10);
-                //ResourceManager.getInstance().currentStored[ResourceManager.getInstance().resources[0].storageIndex] += (float)this.materials[j] * this.resources[j].mass;
+                Messenger.SpawnMessenger();
+                //BattleManager.TransferLoot();
                 //BattleOverMenu.OpenWindow();
             }
 
             if (Input.GetKeyDown(KeyCode.N))
             {
-                GUIManager.getInstance().AddTextLine( ResourceManager.getInstance().resources[0].storageIndex+" : "+ ResourceManager.getInstance().resources[0].value);
+                toggle = (toggle == false) ? true : false;
+                if (toggle)
+                {
+                    MessengerMenu.OpenWindow();
+                }
+                else
+                {
+                    MessengerMenu.CloseWindow();
+                }
                 //BattleManager.Reward(1);
             }
 
             if (Input.GetKeyDown(KeyCode.M))
             {
-                GUIManager.getInstance().AddTextLine("" + draftees.Count);
-                /*BattleManager.Reward();
+                toggle = (toggle == false) ? true : false;
+
+                if (toggle)
+                {
+                    BattleManager.Reward();
+                    BattleOverMenu.OpenWindow();
+                }
+                else
+                {
+                    BattleManager.Reward(1);
+                    BattleOverMenu.CloseWindow();
+                }
                 for (int i = 0; i < BattleManager.bonusLoot; i++)
                 {
                     GUIManager.getInstance().AddTextLine(""+ BattleManager.bonusLoot +" : " + BattleManager.rewards.Count +" : " + BattleManager.rewards.Find(x => x.id == i).type + " : " + +BattleManager.rewards.Find(x => x.id == i).itemid + " : " + BattleManager.rewards.Find(x => x.id == i).amount);
-                }*/
+                }
             }
 
             if (Input.GetKeyDown(KeyCode.K))
@@ -518,16 +552,21 @@ namespace Plugin.Squancher.AdventureMod
                     }
                 }
             }
-
+            */
             if (Input.GetKeyDown(KeyCode.Tab))
             {
                 if (IsOpen())
                 {
+                    if (openDraft)
+                    {
+                        openDraft = false;
+                        return;
+                    }
                     CloseWindow();
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.H))
+            if (Input.GetKeyDown(KeyCode.P))
             {
                 if (GUIManager.getInstance().inGame == true)
                 {
