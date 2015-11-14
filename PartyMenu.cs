@@ -303,8 +303,8 @@ namespace Plugin.Squancher.AdventureMod
                     location3 = new Rect(rect.x, rect.y, 60f, 2f);
                     GUIManager.getInstance().DrawLineBlack(location3);
                     this.EndRotate();
-                    GUIManager.getInstance().DrawCheckBox(new Rect(rect.x + 45f, rect.y + 35f, 200f, 24f), "Sort by military", ref bShowMilitary);
-                    GUIManager.getInstance().DrawCheckBox(new Rect(rect.x + 245f, rect.y + 35f, 200f, 24f), "Sort by civilian", ref bShowCivilian);
+                    GUIManager.getInstance().DrawCheckBox(new Rect(rect.x + 65f, rect.y + 40f, 200f, 24f), "Sort by military", ref bShowMilitary);
+                    GUIManager.getInstance().DrawCheckBox(new Rect(rect.x + 65f, rect.y + 20f, 200f, 24f), "Sort by civilian", ref bShowCivilian);
                 }
                 Rect rect2 = new Rect(7f, 0f + num4 - 20, 225f, 25f);
                 GUIManager.getInstance().DrawTextCenteredWhite(rect2, "Party Members");
@@ -523,7 +523,7 @@ namespace Plugin.Squancher.AdventureMod
                             }
                             else
                             {
-                                Rect location10 = new Rect(0f + num6 - 17f, 0f + num5 - 45f, 250f, 25f);
+                                Rect location10 = new Rect(0f + num6 - 37f, 0f + num5 - 45f, 250f, 25f);
 
                                 if (aPlayableEntity.hitpoints < 26)
                                 {
