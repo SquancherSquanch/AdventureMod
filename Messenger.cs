@@ -102,7 +102,7 @@ namespace Plugin.Squancher.AdventureMod
                     if ( MessengerOdds < 25f)
                     {
                         SpawnMessenger();
-                        GUIManager.getInstance().AddTextLine("Messenger Spawned! Odds = " + MessengerOdds);
+                        //GUIManager.getInstance().AddTextLine("Messenger Spawned! Odds = " + MessengerOdds);
                     }
                     hasRolledToday = true;
                     day = AManager<TimeManager>.getInstance().day;
