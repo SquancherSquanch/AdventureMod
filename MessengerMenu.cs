@@ -27,12 +27,12 @@ namespace Plugin.Squancher.AdventureMod
 
         public static void OpenWindow()
         {
-            MessengerMenu._open = true;
+            _open = true;
         }
 
         public static void CloseWindow()
         {
-            MessengerMenu._open = false;
+            _open = false;
         }
 
         public bool IsOpen()
@@ -51,9 +51,9 @@ namespace Plugin.Squancher.AdventureMod
             }
             GUIManager.getInstance().DrawWindow(location, "A messenger has come, asking for assistance!", false);
             GUI.Box(new Rect(location.x + 12f, location.y + 36f, 372f, 56f), string.Empty, GUIManager.getInstance().boxStyle);
-            //GUIManager.getInstance().DrawTextLeftWhite(new Rect(location.x + 28f, location.y + 40f, 300f, 28f), humanEntity.unitName);
-            GUIManager.getInstance().DrawTextLeftWhite(new Rect(location.x + 16f, location.y + 100f, 670f, 28f), "  Please, some bullies have beat me up and stolen my lunch moneys.");
-            GUIManager.getInstance().DrawTextLeftWhite(new Rect(location.x + 16f, location.y + 128f, 670f, 28f), "I ask for revenge!  Slay them all!"); 
+            GUIManager.getInstance().DrawTextLeftWhite(new Rect(location.x + 28f, location.y + 40f, 300f, 28f), humanEntity.unitName);
+            GUIManager.getInstance().DrawTextLeftWhite(new Rect(location.x + 28f, location.y + 100f, 670f, 28f), "  Please, some bullies have beat me up and stolen my lunch money.");
+            GUIManager.getInstance().DrawTextLeftWhite(new Rect(location.x + 28f, location.y + 128f, 670f, 28f), "I ask for revenge!  Slay them all, and you shall be rewarded!"); 
             if (GUIManager.getInstance().DrawButton(new Rect(location.xMin + 100f, location.yMin + 340f, 200f, 28f), "Accept Quest"))
             {
                 Messenger.isAwaitingResults = false;
@@ -70,14 +70,19 @@ namespace Plugin.Squancher.AdventureMod
 
         public void OnGUI()
         {
-            
+            if (!GUIManager.getInstance().inGame)
+            {
+                return;
+            }
             if (!IsOpen())
             {
                 return;
             }
-            Rect rect = new Rect(0f, 0f, Screen.width, Screen.height);
-            Rect windowRect = GUI.Window(195, rect, new GUI.WindowFunction(this.RenderWindow), string.Empty, GUIManager.getInstance().hiddenButtonStyle);
+            this.windowRect.width = Mathf.Min(this.intendedWindowWidth, (float)(Screen.width - 4));
+            this.windowRect = GUI.Window(195, this.windowRect, new GUI.WindowFunction(this.RenderWindow), string.Empty, GUIManager.getInstance().hiddenButtonStyle);
             GUI.FocusWindow(195);
+            this.windowRect.x = Mathf.Clamp(this.windowRect.x, 2f, (float)Screen.width - this.windowRect.width - 2f);
+            this.windowRect.y = Mathf.Clamp(this.windowRect.y, 40f, (float)Screen.height - this.windowRect.height - 2f);
         }
 
         public void Update()

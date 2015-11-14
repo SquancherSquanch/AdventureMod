@@ -46,14 +46,15 @@ namespace Plugin.Squancher.AdventureMod
 
     public class BattleManager : MonoBehaviour
     {
-        public static int time;
-        public static bool bAdventureMapOpen, bReward, isMapCreated, isStartingFight, isFighting, isPlacingUnits, isPlaced, isBattleOver, isFromTown, isToTown, isArrivingTown, isInTown;
+        public static int time, timesinceload;
+        public static bool bAdventureMapOpen, isMapCreated, isStartingFight, isFighting, isPlacingUnits, isPlacingUnits2, isPlaced, isBattleOver, isFromTown, isToTown, isArrivingTown, isInTown;
         GUIManager guiMgr = GUIManager.getInstance();
         GameSave gamesave;
         private bool reverseSort;
         public static string invasion;
         public static List<Reward> rewards = new List<Reward>();
-        public static int bonusLoot, foodAmount, coinAmount;
+        public static int bonusLoot, foodAmount, coinAmount, EnemyCount, UnitsToPlace;
+
         public enum SortType
         {
             NONE,
@@ -67,8 +68,7 @@ namespace Plugin.Squancher.AdventureMod
         private Dictionary<Type, string> professionList = new Dictionary<Type, string>();
         public Type professionSort;
         public float bounty1, bounty2;
-        public int reward1, reward2 , EnemyCount;
-        public Vector3 StartPosition;
+        public static Vector3 StartPosition;
         
 
         private BattleManager()
@@ -78,7 +78,6 @@ namespace Plugin.Squancher.AdventureMod
         public void Start()
         {
             isInTown = true;
-            bReward = false;
         }
 
         private APlayableEntity[] SortUnits(APlayableEntity[] sortedUnits)
@@ -187,7 +186,6 @@ namespace Plugin.Squancher.AdventureMod
                             {
                                 if (PartyMenu.draftees.Find(x => x.uName == aPlayableEntity.unitName).isEnlisted)
                                 {
-                                    Vector3[] array2 = AManager<ChunkManager>.getInstance().Pick(new Vector3(1, AManager<WorldManager>.getInstance().topHeight, 1), Vector3.down, false);
                                     aPlayableEntity.transform.position = new Vector3(1, 100, 1);
                                     aPlayableEntity.coordinate = Coordinate.FromWorld(aPlayableEntity.transform.position);
                                 }
@@ -198,78 +196,22 @@ namespace Plugin.Squancher.AdventureMod
                             }
                         }
                     }
-
-                    //place units on click
-                    if (trade == 1)
-                    {
-                        if (PartyMenu.draftees.Exists(x => x.uName == aPlayableEntity.unitName))
-                        {
-
-                            if (i == 0)
-                            {
-                                Vector3[] array2 = AManager<ChunkManager>.getInstance().Pick(new Vector3(battleManager.StartPosition.x, AManager<WorldManager>.getInstance().topHeight, battleManager.StartPosition.z), Vector3.down, false);
-                                aPlayableEntity.transform.position = new Vector3(battleManager.StartPosition.x, AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], array2[1]).y + 0.1f, battleManager.StartPosition.z);
-                            }
-                            if ( i==1 || i==2 )
-                            { 
-                                Vector3[] array2 = AManager<ChunkManager>.getInstance().Pick(new Vector3(battleManager.StartPosition.x + (float)UnityEngine.Random.Range(-i/2, i / 2), AManager<WorldManager>.getInstance().topHeight, battleManager.StartPosition.z + (float)UnityEngine.Random.Range(-i / 2, i / 2)), Vector3.down, false);
-                                aPlayableEntity.transform.position = new Vector3(battleManager.StartPosition.x - i / 2, AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], array2[1]).y + 0.1f, battleManager.StartPosition.z);
-                            }
-                            if ( i == 3)
-                            {
-                                Vector3[] array2 = AManager<ChunkManager>.getInstance().Pick(new Vector3(battleManager.StartPosition.x, AManager<WorldManager>.getInstance().topHeight, battleManager.StartPosition.z), Vector3.down, false);
-                                aPlayableEntity.transform.position = new Vector3(battleManager.StartPosition.x, AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], array2[1]).y + 0.1f, battleManager.StartPosition.z - 0.5f);
-                            }
-                            if( i == 4 || i == 5)
-                            {
-                                Vector3[] array2 = AManager<ChunkManager>.getInstance().Pick(new Vector3(battleManager.StartPosition.x + (float)UnityEngine.Random.Range(-i / 2, i / 2), AManager<WorldManager>.getInstance().topHeight, battleManager.StartPosition.z + (float)UnityEngine.Random.Range(-i / 2, i / 2)), Vector3.down, false);
-                                aPlayableEntity.transform.position = new Vector3(battleManager.StartPosition.x - i / 2, AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], array2[1]).y + 0.1f, battleManager.StartPosition.z - 0.5f);
-                            }
-                            aPlayableEntity.coordinate = Coordinate.FromWorld(aPlayableEntity.transform.position);
-                            isPlaced = true;
-                            battleManager = new BattleManager();
-                            battleManager.EnemyCount = GetEnemyRemaining();
-                            GUIManager.getInstance().inGame = true;
-                        }
-                    }
                 }
             }
+            EnemyCount = GetEnemyRemaining();
             return trade;
         }
 
-        // StartSelector
-        public Vector3 CheckPosition()
+        public static void PlaceUnits()
         {
-            RaycastHit raycastHit;
-            Vector3[] array;
-            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out raycastHit))
-            {
-                if (raycastHit.transform.tag == "PickPlane")
-                {
-                    Vector3 normalized = (raycastHit.point - Camera.main.transform.position).normalized;
-                    array = AManager<ChunkManager>.getInstance().Pick(raycastHit.point, normalized, true);
-                }
-                else
-                {
-                    array = AManager<ChunkManager>.getInstance().Pick(Camera.main.transform.position, Camera.main.ScreenPointToRay(Input.mousePosition).direction, true);
-                    if (array == null)
-                    {
-                        return new Vector3(0, 0, 0);
-                    }
-                }
-            }
-            else
-            {
-                array = AManager<ChunkManager>.getInstance().Pick(Camera.main.transform.position, Camera.main.ScreenPointToRay(Input.mousePosition).direction, true);
-                if (array == null)
-                {
-                    return new Vector3(0, 0, 0);
-                }
-            }
-            Vector3 a = new Vector3(array[1].x, array[1].y, array[1].z);
-            Vector3 vector = a + array[2];
-            Vector3 vector2 = AManager<ChunkManager>.getInstance().GetWorldPosition(array[0], vector);
-            return vector2;
+            APlayableEntity[] array = Enumerable.ToArray<APlayableEntity>(Enumerable.Where<APlayableEntity>(Enumerable.OfType<APlayableEntity>(AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units), (APlayableEntity unit) => unit.isAlive()));
+            BattleManager battleManager = new BattleManager();
+            battleManager.SortUnits(array);
+            StartPosition = GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().WorldPositionAtMouse();
+            
+            
+            array[UnitsToPlace-1].transform.position = new Vector3(StartPosition.x, StartPosition.y, StartPosition.z);
+            array[UnitsToPlace - 1].coordinate = Coordinate.FromWorld(array[UnitsToPlace - 1].transform.position);
         }
 
         public static void Reward(int clear = 0)
@@ -281,6 +223,7 @@ namespace Plugin.Squancher.AdventureMod
             }
             rewards.Clear();
             bonusLoot = UnityEngine.Random.Range(1, 7);
+            bonusLoot = 7;
 
             foodAmount = UnityEngine.Random.Range(10,75);
             coinAmount = UnityEngine.Random.Range(5,30);
@@ -289,115 +232,48 @@ namespace Plugin.Squancher.AdventureMod
             {
                 int lootTableRoll = UnityEngine.Random.Range(1, 100);
                 int type, itemID, amount;
+                bool bPass = false;
+                itemID = 0;
+                type = 0;
+                amount = 0;
+
                 //weapon armor
                 if (lootTableRoll < 20)
                 {
-                    type = UnityEngine.Random.Range(0, 4);
+                    type = UnityEngine.Random.Range(0, 1);
                     amount = 1;
+
                     //weapon
                     if (type == 0)
                     {
                         itemID = UnityEngine.Random.Range(0, 16);
-
-                        if (rewards.Exists(x => x.itemid == itemID))
-                        {
-                            rewards.Find(x => x.itemid == itemID).amount += amount;
-                            continue;
-                        }
-                        rewards.Add(new Reward() { id = i, type = 0, itemid = itemID, amount = amount });
+                        
                     }
                     //armor
                     if (type == 1)
                     {
                         itemID = UnityEngine.Random.Range(0, 20);
-                        if (rewards.Exists(x => x.itemid == itemID))
-                        {
-                            rewards.Find(x => x.itemid == itemID).amount += amount;
-                            continue;
-                        }
-                        rewards.Add(new Reward() { id = i, type = 1, itemid = itemID, amount = amount });
-                    }
-                    //mithril
-                    if (type == 2)
-                    {
-                        if (lootTableRoll < 50)
-                        {
-                            itemID = 22;
-                            amount = UnityEngine.Random.Range(1, 6);
-                            if (rewards.Exists(x => x.itemid == itemID))
-                            {
-                                rewards.Find(x => x.itemid == itemID).amount += amount;
-                                continue;
-                            }
-                            rewards.Add(new Reward() { id = i, type = 2, itemid = itemID, amount = amount });
-                        }
-
-                        amount = UnityEngine.Random.Range(1,4);
-                        if (lootTableRoll > 90)
-                        {
-                            itemID = 11;
-                            type = 2;
-                        }
-                        else
-                        {
-                            itemID = 23;
-                            type = 3;
-                        }
-                        if (rewards.Exists(x => x.itemid == itemID))
-                        {
-                            rewards.Find(x => x.itemid == itemID).amount += amount;
-                            continue;
-                        }
-                        rewards.Add(new Reward() { id = i, type = type, itemid = itemID, amount = amount });
-                    }
-                    //gold
-                    if (type == 3)
-                    {
-                        itemID = 22;
-                        amount = UnityEngine.Random.Range(1, 6);
-                        if (rewards.Exists(x => x.itemid == itemID))
-                        {
-                            rewards.Find(x => x.itemid == itemID).amount += amount;
-                            continue;
-                        }
-                        rewards.Add(new Reward() { id = i, type = 3, itemid = itemID, amount = amount });
-                    }
-                    //silver
-                    if (type == 4)
-                    {
-                        itemID = 21;
-                        amount = UnityEngine.Random.Range(1, 8);
-                        if (rewards.Exists(x => x.itemid == itemID))
-                        {
-                            rewards.Find(x => x.itemid == itemID).amount += amount;
-                            continue;
-                        }
-                        rewards.Add(new Reward() { id = i, type = 3, itemid = itemID, amount = amount });
+                        
                     }
                 }
 
                 //processed mats
                 if (lootTableRoll > 19 && lootTableRoll < 50)
                 {
-                    itemID = UnityEngine.Random.Range(0, 3); //7-10
+                    itemID = UnityEngine.Random.Range(0, 4); //7-10
 
                     if (itemID == 0) { itemID = 7; }
                     if (itemID == 1) { itemID = 8; }
                     if (itemID == 2) { itemID = 9; }
-                    if (itemID == 3) { itemID = 10; }
-
                     amount = UnityEngine.Random.Range(1, 16);
-                    if (rewards.Exists(x => x.itemid == itemID))
-                    {
-                        rewards.Find(x => x.itemid == itemID).amount += amount;
-                        continue;
-                    }
-                        rewards.Add(new Reward() { id = i, type = 2, itemid = itemID, amount = amount });
+                    if (itemID == 3) { itemID = 10; amount = UnityEngine.Random.Range(1, 8); }
+                    if (itemID == 4) { itemID = 11; amount = UnityEngine.Random.Range(1, 6); }
+                    type = 2;
                 }
                 //raw mats
                 if (lootTableRoll > 49)
                 {
-                    itemID = UnityEngine.Random.Range(0, 12); //6-10 4, 12 - 15 3, 17-20 3
+                    itemID = UnityEngine.Random.Range(0, 14); //6-10 4, 12 - 15 3, 17-20 3
 
                     if (itemID == 0) { itemID = 6; }
                     if (itemID == 1) { itemID = 7; }
@@ -411,14 +287,28 @@ namespace Plugin.Squancher.AdventureMod
                     if (itemID == 9) { itemID = 17; }
                     if (itemID == 10) { itemID = 18; }
                     if (itemID == 11) { itemID = 19; }
-                    if (itemID == 12) { itemID = 20; }
-                    amount = UnityEngine.Random.Range(1, 16);
-                    if (rewards.Exists(x => x.itemid == itemID))
+                    amount = UnityEngine.Random.Range(1, 24);
+                    if (itemID == 12) { itemID = 20; amount = UnityEngine.Random.Range(1, 18); }
+                    if (itemID == 13) { itemID = 21; amount = UnityEngine.Random.Range(1, 12); }
+                    if (itemID == 14) { itemID = 22; amount = UnityEngine.Random.Range(1, 6); }
+                    type = 3;
+                }
+
+                for (int j = 0; j < rewards.Count; j++)
+                {
+                    if (rewards.Find(x => x.id == j).type == type)
                     {
-                        rewards.Find(x => x.itemid == itemID).amount += amount;
-                        continue;
+                        if (rewards.Find(x => x.id == j).itemid == itemID)
+                        {
+                            rewards.Find(x => x.id == j).amount += amount;
+                            bPass = true;
+                            continue;
+                        }
                     }
-                    rewards.Add(new Reward() { id = i, type = 3, itemid = itemID, amount = amount });
+                }
+                if (!bPass)
+                {
+                    rewards.Add(new Reward() { id = i, type = type, itemid = itemID, amount = amount });
                 }
             }
         }
@@ -436,37 +326,34 @@ namespace Plugin.Squancher.AdventureMod
             {
                 int itemID = rewards.Find(x => x.id == i).itemid;
                 int type = rewards.Find(x => x.id == i).type;
-                int amount = rewards.Find(x => x.id == i).amount; 
+                int amount = rewards.Find(x => x.id == i).amount;
 
-                if (type == 0)
+                switch (type)
                 {
-                    resource2 = Resource.FromID(GUIManager.getInstance().weaponsSortType[itemID]);
-                    WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
+                    case 0:
+                        resource2 = Resource.FromID(GUIManager.getInstance().weaponsSortType[itemID]);
+                        goto case 4;
+                    case 1:
+                        resource2 = Resource.FromID(GUIManager.getInstance().armorSortType[itemID]);
+                        goto case 4;
+                    case 2:
+                        resource2 = Resource.FromID(GUIManager.getInstance().indexesProcessedMats[itemID]);
+                        goto case 4;
+                    case 3:
+                        resource2 = Resource.FromID(GUIManager.getInstance().rawMatsSortType[itemID]);
+                        goto case 4;
+                    case 4:
+                        //GUIManager.getInstance().AddTextLine(i + "Count : " + rewards.Count + " : " + type + " : " + itemID + " : " + amount + " : " + resource2.name + " : " + WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
+                        WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
+                        //GUIManager.getInstance().AddTextLine(i + "Count : " + rewards.Count + " : " + type + " : " + itemID + " : " + amount + " : " + resource2.name + " : " + WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
+                        continue;
                 }
-                if (type == 1)
-                {
-                    resource2 = Resource.FromID(GUIManager.getInstance().armorSortType[itemID]);
-                    WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
-                }
-                if (type == 2)
-                {
-                    resource2 = Resource.FromID(GUIManager.getInstance().indexesProcessedMats[itemID]);
-                    WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
-                }
-                if (type == 3)
-                {
-                    resource2 = Resource.FromID(GUIManager.getInstance().rawMatsSortType[itemID]);
-                    WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
-                }
-                //WorldManager.getInstance().PlayerFaction.storage.setResource(resource2, WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
-                //GUIManager.getInstance().AddTextLine("Count : "+ rewards.Count +" : " + type + " : " + itemID + " : " + amount + " : " + resource2.name + " : " + WorldManager.getInstance().PlayerFaction.storage.getResource(resource2) + amount);
             }
             rewards.Clear();
         }
 
         public void LoadBattle()
         {
-            isFighting = true;
             AManager<ChunkManager>.getInstance().DeleteChunkData();
             GUIManager.getInstance().selectedBlock = null;
             DestoryAll();
@@ -476,31 +363,42 @@ namespace Plugin.Squancher.AdventureMod
             AManager<WorldManager>.getInstance().animalChicken = 0f;
             AManager<WorldManager>.getInstance().mountains = 0f;
             AManager<WorldManager>.getInstance().trees = 0.2f;
+            int river = UnityEngine.Random.Range(0, 100);
             AManager<WorldManager>.getInstance().river = false;
             AManager<WorldManager>.getInstance().coast = false;
             AManager<WorldManager>.getInstance().CreateNewGame(AManager<WorldManager>.getInstance().settlementName, new Vector3i(2, 48, 2));
             GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
             GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
-            AManager<WorldManager>.getInstance().SpawnInvasion();
+
+            //AManager<WorldManager>.getInstance().SpawnInvasion();
+            float num = -650f;
+            if(AManager<ResourceManager>.getInstance().getWealth() <= 0)
+            {
+                num += 50f * (float)AManager<WorldManager>.getInstance().PlayerFaction.LiveUnitCount();
+            }
+            else
+            {
+                num += AManager<ResourceManager>.getInstance().getWealth();
+            }
+            num += 100f * (float)AManager<WorldManager>.getInstance().PlayerFaction.LiveUnitCount();
+            num += 50f * (float)AManager<TimeManager>.getInstance().day;
+            AManager<WorldManager>.getInstance().SpawnInvasion(Mathf.FloorToInt(num));
+
+            BattleStartMenu.OpenWindow();
         }
 
         public void LoadHome()
         {
             GUIManager.getInstance().AddTextLine("Fight over");
-            isFighting = false;
-            isPlaced = false;
-            isArrivingTown = false;
-            isInTown = true;
             AManager<ChunkManager>.getInstance().DeleteChunkData();
             GUIManager.getInstance().selectedBlock = null;
             foreach (ALivingEntity allEntities in UnitManager.getInstance().allUnits)
             {
                 allEntities.Destroy();
             }
-
             //WorldManager.getInstance().LoadGame(PluginMain.File);
             //base.StartCoroutine(this.LoadGame(0.1f, saveFileData.file));
-            this.gamesave = GameSave.Create("saves/" + PluginMain.File);
+            this.gamesave = GameSave.Create("saves/" + PluginMain.File + ".tass.gz");
             this.gamesave.Load();
             WorldManager.getInstance().enableSaving = true;
             Vector3i worldSize = AManager<ChunkManager>.getInstance().worldSize;
@@ -518,14 +416,35 @@ namespace Plugin.Squancher.AdventureMod
 
         public static void SendPartyOnQuest()
         {
-            isFromTown = true;
             isInTown = false;
+            isStartingFight = true;
+            PrepBattleField(0);
+            BattleManager battlemanager = new BattleManager();
+            battlemanager.LoadBattle();
+            AManager<WorldManager>.getInstance().enableSaving = false;
+            isPlacingUnits = true;
+            isPlacingUnits2 = true;
+            isFighting = true;
+            BattleStartMenu.OpenWindow();
+            UnitsToPlace = PartyMenu.PartySize;
         }
 
         public static void SendPartyBackHome()
         {
-            isArrivingTown = true;
+            isFighting = false;
+            isPlaced = false;
+            isBattleOver = false;
             isToTown = false;
+            isInTown = true;
+            isArrivingTown = true;
+            PartyMenu.ManageParty(1);
+            BattleManager battleManager = new BattleManager();
+            battleManager.LoadHome();
+            if (WorldManager.getInstance().settlementName.ToString() != PluginMain.File)
+            {
+                WorldManager.getInstance().settlementName = PluginMain.File;
+            }
+            AManager<WorldManager>.getInstance().enableSaving = true;
         }
 
         public static int GetEnemyRemaining()
@@ -552,23 +471,30 @@ namespace Plugin.Squancher.AdventureMod
 
         public void OnGUI()
         {
-
-            if (isPlacingUnits)
+            if (isPlacingUnits2)
             {
-                BattleStartMenu.OpenWindow();
+                PlaceUnits();
+            }
+
+            if (isArrivingTown)
+            {
+                if (isInTown)
+                {
+                    timesinceload++;
+                    if(timesinceload >= 10f)
+                    {
+                        isArrivingTown = false;
+                        PartyMenu.ManageParty(2);
+                        TransferLoot();
+                        timesinceload = 0;
+                    }
+                }
             }
 
             if (isFighting && isPlaced)
             {
-                if (isArrivingTown)
-                {
-                    PartyMenu.ManageParty(1);
-                    LoadHome();
-                    PartyMenu.ManageParty(2);
-                    TransferLoot();
-                    AManager<WorldManager>.getInstance().enableSaving = true;
-                }
-                else if (GetEnemyRemaining() <= 0 && !isArrivingTown)
+                //GUIManager.getInstance().DrawTextCenteredWhite(new Rect(0f, Screen.height / 10, 200f, 35f), "Enemy Count:" + EnemyCount);
+                if (GetEnemyRemaining() <= 0)
                 {
                     if (!isBattleOver)
                     {
@@ -585,32 +511,28 @@ namespace Plugin.Squancher.AdventureMod
                     }
                 }
             }
-
-            if (isFromTown)
-            {
-                PrepBattleField(0);
-                isStartingFight = true;
-                isFromTown = false;
-                GUIManager.getInstance().inStartMenu = true;
-            }
-
-            if (isStartingFight)
-            {
-                LoadBattle();
-            }
         }
 
         public void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Mouse0))
+            if (Input.GetKeyUp(KeyCode.Mouse0))
             {
                 if (isPlacingUnits)
                 {
-                    isPlacingUnits = false;
-                    StartPosition = CheckPosition();
-                    PrepBattleField(1);
-                    BattleStartMenu.CloseWindow();
-                    GUIManager.getInstance().inGame = true;
+                    if ( UnitsToPlace > 1)
+                    {
+                        UnitsToPlace--;
+                    }
+                    else
+                    {
+                        UnitsToPlace--;
+                        isPlacingUnits = false;
+                        isPlacingUnits2 = false;
+                        isPlaced = true;
+                        //StartPosition = CheckPosition();
+                        BattleStartMenu.CloseWindow();
+                        GUIManager.getInstance().inGame = true;
+                    }
                 }
             }
         }

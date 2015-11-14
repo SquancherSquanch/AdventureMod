@@ -27,12 +27,12 @@ namespace Plugin.Squancher.AdventureMod
          
         public static void OpenWindow()
         {
-            BattleStartMenu._open = true;
+            _open = true;
         }
 
         public static void CloseWindow()
         {
-            BattleStartMenu._open = false;
+            _open = false;
         }
 
         public bool IsOpen()
@@ -49,12 +49,16 @@ namespace Plugin.Squancher.AdventureMod
             }
             Rect location6 = new Rect((float)(Screen.width / 2 - 270), 32f, 580f, 180f);
             GUIManager.getInstance().DrawWindow(location6, "Fight Initiated!", false);
+            //GUIManager.getInstance().DrawWindow(location6, "" + GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().WorldPositionAtMouse(), false);
             GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 30f, location6.width - 16f, 110f), "Left click to place party!");
-            BattleManager.isStartingFight = false;
         }
 
         public void OnGUI()
         {
+            if (GUIManager.getInstance().inGame)
+            {
+                return;
+            }
             if (!IsOpen())
             {
                 return;
@@ -88,12 +92,12 @@ namespace Plugin.Squancher.AdventureMod
 
         public static void OpenWindow()
         {
-            BattleOverMenu._open = true;
+            _open = true;
         }
 
         public static void CloseWindow()
         {
-            BattleOverMenu._open = false;
+            _open = false;
         }
 
         public bool IsOpen()
@@ -142,52 +146,53 @@ namespace Plugin.Squancher.AdventureMod
                         TransitionScreen.OpenWindow();
                         AdventureMap.OpenWindow();
                         BattleManager.time = 0;
-                        BattleManager.bReward = false;
                     }
                 }
 
             }
 
             num = 120; num2 = 82;
-                num2 += 24;
-                for (int i = 0; i < BattleManager.rewards.Count; i++)
+            num2 += 24;
+            for (int i = 0; i < BattleManager.rewards.Count; i++)
+            {
+                int type = BattleManager.rewards.Find(x => x.id == i).type;
+                int itemID = BattleManager.rewards.Find(x => x.id == i).itemid;
+                int amount = BattleManager.rewards.Find(x => x.id == i).amount;
+
+                if (i == 1)
                 {
-                    //4 7
-                    if (i == 1)
-                    {
-                        num = 200;
-                        num2 = 58;
-                    }
-                    if (i == 4)
-                    {
-                        num = 280;
-                        num2 = 58;
-                    }
-                    int itemID = BattleManager.rewards.Find(x => x.id == i).itemid;
-                    int amount = BattleManager.rewards.Find(x => x.id == i).amount;
-                    if (BattleManager.rewards.Find(x => x.id == i).type == 0)
-                    {
-                        resource = Resource.FromID(GUIManager.getInstance().weaponsSortType[itemID]);
-                    }
-                    if (BattleManager.rewards.Find(x => x.id == i).type == 1)
-                    {
-                        resource = Resource.FromID(GUIManager.getInstance().armorSortType[itemID]);
-                    }
-                    if (BattleManager.rewards.Find(x => x.id == i).type == 2)
-                    {
-                        resource = Resource.FromID(GUIManager.getInstance().indexesProcessedMats[itemID]);
-                    }
-                    if (BattleManager.rewards.Find(x => x.id == i).type == 3)
-                    {
-                        resource = Resource.FromID(GUIManager.getInstance().rawMatsSortType[itemID]);
-                    }
-                    location2 = new Rect(location.x + num, location.y + num2, 24f, 24f);
-                    GUI.DrawTexture(new Rect(location2.x, location2.y, 24f, 24f), resource.icon);
-                    GUIManager.getInstance().DrawTextCenteredWhite(new Rect(location2.x + 25f, location2.y, 50f, 24f), "" + amount);
+                    num = 200;
+                    num2 = 58;
+                }
+                if (i == 4)
+                {
+                    num = 280;
+                    num2 = 58;
+                }
+                    
+                if (type == 0)
+                {
+                    resource = Resource.FromID(GUIManager.getInstance().weaponsSortType[itemID]);
+                }
+                if (type == 1)
+                {
+                    resource = Resource.FromID(GUIManager.getInstance().armorSortType[itemID]);
+                }
+                if (type == 2)
+                {
+                    resource = Resource.FromID(GUIManager.getInstance().indexesProcessedMats[itemID]);
+                }
+                if (type == 3)
+                {
+                    resource = Resource.FromID(GUIManager.getInstance().rawMatsSortType[itemID]);
+                }
+                location2 = new Rect(location.x + num, location.y + num2, 24f, 24f);
+                GUI.DrawTexture(new Rect(location2.x, location2.y, 24f, 24f), resource.icon);
+                GUIManager.getInstance().DrawTextCenteredWhite(new Rect(location2.x + 25f, location2.y, 50f, 24f), "" + amount);
                     
                     
                     
-                        num2 += 24;
+                    num2 += 24;
             }
             //Note: implement by invasion type or unit type loot list....
             /*if (invasion == "wolf")
@@ -271,18 +276,13 @@ namespace Plugin.Squancher.AdventureMod
         public static void OpenWindow()
         {
             countdown = 0;
-            if (BattleManager.isInTown)
-            {
-                AManager<WorldManager>.getInstance().SaveGame();
-            }
-            TransitionScreen.bOpen = true;
+            bOpen = true;
             GUIManager.getInstance().inGame = false;
-            
         }
 
         public static void CloseWindow()
         {
-            TransitionScreen.bOpen = false;
+            bOpen = false;
         }
 
         public static bool IsOpen()
@@ -292,24 +292,51 @@ namespace Plugin.Squancher.AdventureMod
 
         public void RenderWindow(int windowID)
         {
-            if (IsOpen())
+            if (BattleManager.isInTown)
             {
-                if (BattleManager.isInTown)
-                {
-                    GUIManager.getInstance().DrawTextCenteredWhite(new Rect(Screen.width / 2 - 110f, 100f, 220f, 30f), "Traveling to mission.");
-                }
-                if (BattleManager.isToTown)
-                {
-                    GUIManager.getInstance().DrawTextCenteredWhite(new Rect(Screen.width / 2 - 110, 100f, 220f, 30f), "Traveling back home.");
-                }
+                GUIManager.getInstance().DrawTextCenteredWhite(new Rect(Screen.width / 2 - 110f, 100f, 220f, 30f), "Traveling to mission.");
+            }
+            if (BattleManager.isToTown)
+            {
+                GUIManager.getInstance().DrawTextCenteredWhite(new Rect(Screen.width / 2 - 110, 100f, 220f, 30f), "Traveling back home.");
             }
         }
 
         public void OnGUI()
         {
+            if (GUIManager.getInstance().inGame)
+            {
+                return;
+            }
             if (!IsOpen())
             {
                 return;
+            }
+            
+            if (BattleManager.isInTown)
+            {
+                countdown++;
+                if (countdown >= 30f)
+                {
+                    
+                    BattleManager.SendPartyOnQuest();
+                    AdventureMap.CloseWindow();
+                    CloseWindow();
+                    countdown = 0;
+                    return;
+                }
+            }
+            if (BattleManager.isToTown)
+            {
+                countdown++;
+                if (countdown >= 30f)
+                {
+                    CloseWindow();
+                    AdventureMap.CloseWindow();
+                    BattleManager.SendPartyBackHome();
+                    countdown = 0;
+                    return;
+                }
             }
 
             this.windowRect.width = Mathf.Min(this.intendedWindowWidth, (float)(Screen.width - 4));
@@ -317,27 +344,6 @@ namespace Plugin.Squancher.AdventureMod
             GUI.FocusWindow(191);
             this.windowRect.x = Mathf.Clamp(this.windowRect.x, 2f, (float)Screen.width - this.windowRect.width - 2f);
             this.windowRect.y = Mathf.Clamp(this.windowRect.y, 40f, (float)Screen.height - this.windowRect.height - 2f);
-            countdown++;
-            if (BattleManager.isInTown)
-            {
-                if (countdown >= 30f)
-                {
-                    BattleManager.SendPartyOnQuest();
-                    AdventureMap.CloseWindow();
-                    CloseWindow();
-                    countdown = 0;
-                }
-            }
-            if (BattleManager.isToTown)
-            {
-                if (countdown >= 300f)
-                {
-                    CloseWindow();
-                    AdventureMap.CloseWindow();
-                    BattleManager.SendPartyBackHome();
-                    countdown = 0;
-                }
-            }
         }
 
         public void Update()

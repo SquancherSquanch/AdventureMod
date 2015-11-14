@@ -30,6 +30,7 @@ namespace Plugin.Squancher.AdventureMod
             GUIManager.getInstance().gameObject.AddComponent(typeof(Draftees));
             GUIManager.getInstance().gameObject.AddComponent(typeof(TransitionScreen));
             GUIManager.getInstance().gameObject.AddComponent(typeof(Messenger));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(BattleStartMenu));
             GUIManager.getInstance().gameObject.AddComponent(typeof(BattleOverMenu));
             GUIManager.getInstance().gameObject.AddComponent(typeof(MessengerMenu));
         }
@@ -45,16 +46,37 @@ namespace Plugin.Squancher.AdventureMod
         public void onEntityDeathMonitor(EventEntityDeath evt)
         {
             string deadDraftee = evt.getUnit().unitName;
-            PartyMenu.draftees.Remove(PartyMenu.draftees.Find(x => x.uName == deadDraftee));
+            //if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(evt.getUnit().faction) != Alignment.Ally)
+
+            /*
+            if (!evt.getUnit().GetType().Equals(typeof(HumanEntity)))
+            {
+                GUIManager.getInstance().AddTextLine("" + evt.getUnit().GetType());
+                
+                if (BattleManager.EnemyCount <= 0 && BattleManager.isFighting)
+                {
+                    BattleManager.Reward();
+                    BattleManager.isBattleOver = true;
+                }
+                if (BattleManager.EnemyCount > 0)
+                {
+                    BattleManager.EnemyCount--;
+                }
+            }
+            else 
+            {
+                PartyMenu.draftees.Remove(PartyMenu.draftees.Find(x => x.uName == deadDraftee));
+            }
+            */
+            if (PartyMenu.draftees.Exists(x => x.uName == deadDraftee))
+            {
+                PartyMenu.draftees.Remove(PartyMenu.draftees.Find(x => x.uName == deadDraftee));
+            }
         }
 
         [EventHandler(Priority.Monitor)]
         public void onMigrantAcceptMonitor(EventMigrantAccept evt)
         { 
-            if (evt.unit.unitName == "Messenger")
-            {
-                GUIManager.getInstance().AddTextLine("A messenger comes this way asking for aid.");
-            }
             PartyMenu.draftees.Add(new Draftees() { UnitId = PartyMenu.draftees.Count, uName = evt.unit.unitName, Health = evt.unit.hitpoints, Experience = evt.unit.getProfession().currentXP, isEnlisted = false });
         }
 
@@ -72,11 +94,6 @@ namespace Plugin.Squancher.AdventureMod
                 BattleOverMenu.invasion = evt.invasion.getName();
                 BattleManager.invasion = evt.invasion.getName();
             }
-            if (evt.invasion.getName() == "wolves" || evt.invasion.getName() == "spiders" || evt.invasion.getName() == "skeletons" || evt.invasion.getName() == "goblins")
-            {
-                GUIManager.getInstance().AddTextLine("Some " + evt.invasion.getName() + " have found you!");
-            }
-
             //GUIManager.getInstance().AddTextLine(evt.invasion.getName());
         }
 
@@ -85,26 +102,26 @@ namespace Plugin.Squancher.AdventureMod
         {
             if (File == "")
             {
-                File = worldManager.settlementName.ToString() + ".tass.gz";
+                File = worldManager.settlementName.ToString();
             }
 
             if (!AdventureMap.isMapCreated)
             {
+                Messenger.day = AManager<TimeManager>.getInstance().day;
                 AManager<MapManager>.getInstance().CreateWorldMap();
                 AdventureMap.isMapCreated = true;
             }
 
             if (BattleManager.isStartingFight)
             {
-                //TransitionScreen.CloseWindow();
+                TransitionScreen.CloseWindow();
                 AManager<TimeManager>.getInstance().pause();
                 Screen.lockCursor = false;
                 Screen.showCursor = true;
-                AManager<WorldManager>.getInstance().enableSaving = false;
-                GUIManager.getInstance().startMenu = "New6";
+                GUIManager.getInstance().startMenu = "";
                 GUIManager.getInstance().inStartMenu = true;
                 GUIManager.getInstance().inGame = false;
-                BattleManager.isPlacingUnits = true;
+                BattleManager.isStartingFight = false;
             }
 
             if (PartyMenu.draftees.Count <= 0)

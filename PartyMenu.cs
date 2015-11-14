@@ -47,7 +47,7 @@ namespace Plugin.Squancher.AdventureMod
 
     public class PartyMenu : MonoBehaviour
     {
-        private bool _open;
+        private bool _open, bShowMilitary, bShowCivilian, bSeekTarget;
         GUIManager guiMgr;
         private bool reverseSort, openDraft, toggle;
         private ControlPlayer controller;
@@ -68,20 +68,21 @@ namespace Plugin.Squancher.AdventureMod
         public Rect windowViewRect;
         private Vector2? lastPivot;
         private Vector2 scrollPosition;
-        public int PartySize;
+        public static int PartySize;
         private PartyMenu()
         {
         }
 
         public void Start()
         {
-            guiMgr = AManager< GUIManager>.getInstance();
+            bShowMilitary = false;
+            bShowCivilian = false;
             windowRect = new Rect(0f, 0f, this.intendedWindowWidth, 320f);
             windowViewRect = new Rect(0f, 0f, this.intendedWindowWidth, 320f);
             this.scrollPosition = Vector2.zero;
             this.horizontalScrollPosition = Vector2.zero;
-            this.controller = this.guiMgr.controllerObj.GetComponent<ControlPlayer>();
-            this.PartySize = 0;
+            this.controller = GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>();
+            PartySize = 0;
             openDraft = false;
         }
 
@@ -224,6 +225,10 @@ namespace Plugin.Squancher.AdventureMod
         public void OpenWindow()
         {
             this._open = true;
+            if (draftees.Count <= 0)
+            {
+                ManageParty(0);
+            }
         }
 
         public void CloseWindow()
@@ -239,6 +244,16 @@ namespace Plugin.Squancher.AdventureMod
 
         public void RenderWindow(int windowID)
         {
+            if ( bShowCivilian == true )
+            {
+                    bShowMilitary = false;
+            }
+
+            if (bShowMilitary == true)
+            {
+                    bShowCivilian = false;
+            }
+
             float num = 25f;
             float num2 = 9f;
             if (IsOpen())
@@ -246,10 +261,10 @@ namespace Plugin.Squancher.AdventureMod
                 Rect location = new Rect(0f, 0f, this.windowRect.width, this.windowRect.height);
                 if (location.Contains(Event.current.mousePosition))
                 {
-                    this.guiMgr.mouseInGUI = true;
+                    GUIManager.getInstance().mouseInGUI = true;
                 }
-                this.guiMgr.DrawWindow(location, "Party Menu", false);
-                if (GUI.Button(new Rect(location.xMax - 24f, location.yMin + 4f, 20f, 20f), string.Empty, this.guiMgr.closeWindowButtonStyle))
+                GUIManager.getInstance().DrawWindow(location, "Party Menu", false);
+                if (GUI.Button(new Rect(location.xMax - 24f, location.yMin + 4f, 20f, 20f), string.Empty, GUIManager.getInstance().closeWindowButtonStyle))
                 {
                     if (openDraft)
                     {
@@ -277,17 +292,24 @@ namespace Plugin.Squancher.AdventureMod
                 Rect rect = new Rect(0f + num3 - 45f, 0f + num4 - 50, 165f, 10f);
                 this.Rotate(new Vector2(rect.xMin + rect.width / 2f, rect.yMin + rect.height / 2f));
                 Rect location3 = new Rect(rect.x, rect.y, 60f, 2f);
-                this.guiMgr.DrawLineBlack(location3);
+                GUIManager.getInstance().DrawLineBlack(location3);
                 this.EndRotate();
-                rect = new Rect(0f + num3 + 221f, 0f + num4 - 50, 165f, 10f);
-                this.Rotate(new Vector2(rect.xMin + rect.width / 2f, rect.yMin + rect.height / 2f));
-                location3 = new Rect(rect.x, rect.y, 60f, 2f);
-                this.guiMgr.DrawLineBlack(location3);
-                this.EndRotate();
+                GUIManager.getInstance().DrawCheckBox(new Rect(rect.x - 180f, rect.y + 280f, 200f, 24f), "Seek charge target enemies.", ref bSeekTarget);
+
+                if (openDraft)
+                {
+                    rect = new Rect(0f + num3 + 221f, 0f + num4 - 50, 165f, 10f);
+                    this.Rotate(new Vector2(rect.xMin + rect.width / 2f, rect.yMin + rect.height / 2f));
+                    location3 = new Rect(rect.x, rect.y, 60f, 2f);
+                    GUIManager.getInstance().DrawLineBlack(location3);
+                    this.EndRotate();
+                    GUIManager.getInstance().DrawCheckBox(new Rect(rect.x + 45f, rect.y + 35f, 200f, 24f), "Sort by military", ref bShowMilitary);
+                    GUIManager.getInstance().DrawCheckBox(new Rect(rect.x + 245f, rect.y + 35f, 200f, 24f), "Sort by civilian", ref bShowCivilian);
+                }
                 Rect rect2 = new Rect(7f, 0f + num4 - 20, 225f, 25f);
-                this.guiMgr.DrawTextCenteredWhite(rect2, "Party Members");
+                GUIManager.getInstance().DrawTextCenteredWhite(rect2, "Party Members");
                 
-                this.guiMgr.DrawLineBlack(new Rect(num2, num4 + 10f, this.windowRect.width, 2f));
+                GUIManager.getInstance().DrawLineBlack(new Rect(num2, num4 + 10f, this.windowRect.width, 2f));
                 num3 = 2f;
                 num4 = 123f;
                 if (this.windowRect.width >= this.intendedWindowWidth)
@@ -306,10 +328,10 @@ namespace Plugin.Squancher.AdventureMod
                 {
                     num3 = 2f;
                     Rect location5 = new Rect(0f + num3 - 17f, 0f + num4 - 70f, 225f, 25f);
-                    this.guiMgr.DrawLineBlack(new Rect(num3 + 5f, num4 - 45f, this.windowViewRect.width - 20f, 2f));
+                    GUIManager.getInstance().DrawLineBlack(new Rect(num3 + 5f, num4 - 45f, this.windowViewRect.width - 20f, 2f));
                     num3 += 236f;
-                    this.guiMgr.DrawLineBlack(new Rect(num3 - 17f, num4 - 84f, 2f, this.windowViewRect.height - 5f));
-                    this.guiMgr.DrawLineBlack(new Rect(num3 + 249f, num4 - 84f, 2f, this.windowViewRect.height - 5f));
+                    GUIManager.getInstance().DrawLineBlack(new Rect(num3 - 17f, num4 - 84f, 2f, this.windowViewRect.height - 5f));
+                    GUIManager.getInstance().DrawLineBlack(new Rect(num3 + 249f, num4 - 84f, 2f, this.windowViewRect.height - 5f));
                     Rect rect4 = new Rect(num3, num4, 45f, 32f);
                     Rect position3 = rect4;
                     position3.y -= 5f;
@@ -330,79 +352,203 @@ namespace Plugin.Squancher.AdventureMod
                         {
                             if (!draftees.Find(x => x.uName == aPlayableEntity.unitName).isEnlisted)
                             {
-                                sizeincrease++;
-                                num3 = 2f;
-                                if (sizeincrease >= 8 && sizeincrease <= 14)
+                                if (aPlayableEntity.getProfession().getProfessionName() == "Infantry" || aPlayableEntity.getProfession().getProfessionName() == "Archer")
                                 {
-                                    if (sizeincrease == 8)
-                                    {
-                                        num4 = 123f;
-                                    }
-                                    num3 += 225f;
-                                }
-                                if (sizeincrease >= 15 && sizeincrease <= 21)
-                                {
-                                    if (sizeincrease == 15)
-                                    {
-                                        num4 = 123f;
-                                    }
-                                    num3 += 450f;
-                                }
-                                if (sizeincrease >= 22 && sizeincrease <= 28)
-                                {
-                                    if (sizeincrease == 22)
-                                    {
-                                        num4 = 123f;
-                                    }
-                                    num3 += 675f;
-                                }
-                                Rect location8 = new Rect(0f + num3 + 525f, 0f + num4 - 45f, 225f, 25f);
-                                Rect position4 = new Rect(0f + num3 + 500f, 0f + num4 - 45f, 22f, 22f);
-                                this.guiMgr.DrawTextLeftWhite(location8, aPlayableEntity.unitName);
-                                if (GUI.Button(location8, string.Empty, this.guiMgr.hiddenButtonStyle))
-                                {
-                                    if (PartySize < 6)
-                                    {
-                                        draftees.Find(x => x.uName == aPlayableEntity.unitName).isEnlisted = true;
-                                        PartySize++;
-                                    }
-                                }
-                                if (aPlayableEntity.getProfession().getProfessionName() == "Infantry")
-                                {
-                                    Resource resource5 = Resource.FromID(this.guiMgr.weaponsSortType[1]);
-                                    GUI.DrawTexture(position4, resource5.icon);
-                                }
-                                if (aPlayableEntity.getProfession().getProfessionName() == "Archer")
-                                {
-                                    Resource resource5 = Resource.FromID(this.guiMgr.weaponsSortType[5]);
-                                    GUI.DrawTexture(position4, resource5.icon);
+                                    aPlayableEntity.preferences["preference.attackchargetargets"] = bSeekTarget;
                                 }
 
-                                num4 += 32f;
+                                if (bShowMilitary && (aPlayableEntity.getProfession().getProfessionName() == "Infantry" || aPlayableEntity.getProfession().getProfessionName() == "Archer"))
+                                {
+                                    sizeincrease++;
+                                    num3 = 2f;
+                                    if (sizeincrease >= 8 && sizeincrease <= 14)
+                                    {
+                                        if (sizeincrease == 8)
+                                        {
+                                            num4 = 123f;
+                                        }
+                                        num3 += 225f;
+                                    }
+                                    if (sizeincrease >= 15 && sizeincrease <= 21)
+                                    {
+                                        if (sizeincrease == 15)
+                                        {
+                                            num4 = 123f;
+                                        }
+                                        num3 += 450f;
+                                    }
+                                    if (sizeincrease >= 22 && sizeincrease <= 28)
+                                    {
+                                        if (sizeincrease == 22)
+                                        {
+                                            num4 = 123f;
+                                        }
+                                        num3 += 675f;
+                                    }
+                                    Rect location8 = new Rect(0f + num3 + 525f, 0f + num4 - 45f, 250f, 25f);
+                                    Rect position4 = new Rect(0f + num3 + 495f, 0f + num4 - 45f, 22f, 22f);
+
+                                    if (aPlayableEntity.hitpoints < 26)
+                                    {
+                                        GUIManager.getInstance().DrawTextLeftWhite(location8, aPlayableEntity.unitName, Color.red);
+                                    }
+                                    if (aPlayableEntity.hitpoints > 25 && aPlayableEntity.hitpoints < 50)
+                                    {
+                                        GUIManager.getInstance().DrawTextLeftWhite(location8, aPlayableEntity.unitName, Color.yellow);
+                                    }
+                                    if (aPlayableEntity.hitpoints > 49)
+                                    {
+                                        GUIManager.getInstance().DrawTextLeftWhite(location8, aPlayableEntity.unitName, Color.white);
+                                    }
+
+                                    if (GUI.Button(location8, string.Empty, GUIManager.getInstance().hiddenButtonStyle))
+                                    {
+                                        if (PartySize < 6)
+                                        {
+                                            draftees.Find(x => x.uName == aPlayableEntity.unitName).isEnlisted = true;
+                                            PartySize++;
+                                        }
+                                    }
+                                    GUI.DrawTexture(position4, AManager<AssetManager>.getInstance().GetSkillIconFromProfession(aPlayableEntity.getProfession().getProfessionName()));
+                                    num4 += 32f;
+                                }
+                                else if (!bShowMilitary && !bShowCivilian)
+                                {
+                                    sizeincrease++;
+                                    num3 = 2f;
+                                    if (sizeincrease >= 8 && sizeincrease <= 14)
+                                    {
+                                        if (sizeincrease == 8)
+                                        {
+                                            num4 = 123f;
+                                        }
+                                        num3 += 225f;
+                                    }
+                                    if (sizeincrease >= 15 && sizeincrease <= 21)
+                                    {
+                                        if (sizeincrease == 15)
+                                        {
+                                            num4 = 123f;
+                                        }
+                                        num3 += 450f;
+                                    }
+                                    if (sizeincrease >= 22 && sizeincrease <= 28)
+                                    {
+                                        if (sizeincrease == 22)
+                                        {
+                                            num4 = 123f;
+                                        }
+                                        num3 += 675f;
+                                    }
+                                    Rect location8 = new Rect(0f + num3 + 525f, 0f + num4 - 45f, 250f, 25f);
+                                    Rect position4 = new Rect(0f + num3 + 495f, 0f + num4 - 45f, 22f, 22f);
+                                    if (aPlayableEntity.hitpoints < 26)
+                                    {
+                                        GUIManager.getInstance().DrawTextLeftWhite(location8, aPlayableEntity.unitName, Color.red);
+                                    }
+                                    if (aPlayableEntity.hitpoints > 25 && aPlayableEntity.hitpoints < 50)
+                                    {
+                                        GUIManager.getInstance().DrawTextLeftWhite(location8, aPlayableEntity.unitName, Color.yellow);
+                                    }
+                                    if (aPlayableEntity.hitpoints > 49)
+                                    {
+                                        GUIManager.getInstance().DrawTextLeftWhite(location8, aPlayableEntity.unitName, Color.white);
+                                    }
+                                    if (GUI.Button(location8, string.Empty, GUIManager.getInstance().hiddenButtonStyle))
+                                    {
+                                        if (PartySize < 6)
+                                        {
+                                            draftees.Find(x => x.uName == aPlayableEntity.unitName).isEnlisted = true;
+                                            PartySize++;
+                                        }
+                                    }
+                                    GUI.DrawTexture(position4, AManager<AssetManager>.getInstance().GetSkillIconFromProfession(aPlayableEntity.getProfession().getProfessionName()));
+                                    num4 += 32f;
+                                }
+                                else if (bShowCivilian && (aPlayableEntity.getProfession().getProfessionName() != "Infantry" && aPlayableEntity.getProfession().getProfessionName() != "Archer"))
+                                {
+                                    sizeincrease++;
+                                    num3 = 2f;
+                                    if (sizeincrease >= 8 && sizeincrease <= 14)
+                                    {
+                                        if (sizeincrease == 8)
+                                        {
+                                            num4 = 123f;
+                                        }
+                                        num3 += 225f;
+                                    }
+                                    if (sizeincrease >= 15 && sizeincrease <= 21)
+                                    {
+                                        if (sizeincrease == 15)
+                                        {
+                                            num4 = 123f;
+                                        }
+                                        num3 += 450f;
+                                    }
+                                    if (sizeincrease >= 22 && sizeincrease <= 28)
+                                    {
+                                        if (sizeincrease == 22)
+                                        {
+                                            num4 = 123f;
+                                        }
+                                        num3 += 675f;
+                                    }
+                                    Rect location8 = new Rect(0f + num3 + 525f, 0f + num4 - 45f, 250f, 25f);
+                                    Rect position4 = new Rect(0f + num3 + 495f, 0f + num4 - 45f, 22f, 22f);
+
+                                    if (aPlayableEntity.hitpoints < 26)
+                                    {
+                                        GUIManager.getInstance().DrawTextLeftWhite(location8, aPlayableEntity.unitName, Color.red);
+                                    }
+                                    if (aPlayableEntity.hitpoints > 25 && aPlayableEntity.hitpoints < 50)
+                                    {
+                                        GUIManager.getInstance().DrawTextLeftWhite(location8, aPlayableEntity.unitName, Color.yellow);
+                                    }
+                                    if (aPlayableEntity.hitpoints > 49)
+                                    {
+                                        GUIManager.getInstance().DrawTextLeftWhite(location8, aPlayableEntity.unitName, Color.white);
+                                    }
+
+                                    if (GUI.Button(location8, string.Empty, GUIManager.getInstance().hiddenButtonStyle))
+                                    {
+                                        if (PartySize < 6)
+                                        {
+                                            draftees.Find(x => x.uName == aPlayableEntity.unitName).isEnlisted = true;
+                                            PartySize++;
+                                        }
+                                    }
+                                    GUI.DrawTexture(position4, AManager<AssetManager>.getInstance().GetSkillIconFromProfession(aPlayableEntity.getProfession().getProfessionName()));
+                                    num4 += 32f;
+                                }
                             }
                             else
                             {
-                                Rect location10 = new Rect(0f + num6 - 17f, 0f + num5 - 45f, 225f, 25f);
-                                this.guiMgr.DrawTextRightWhite(location10, aPlayableEntity.unitName);
-                                this.guiMgr.DrawProgressBar(new Rect(num6 + 250f, num5 - 45f, 142f, 22f), aPlayableEntity.hitpoints / 100f, true);
-                                Rect location6 = new Rect(num6 + 400f, num5 - 45f, 22f, 22f);
+                                Rect location10 = new Rect(0f + num6 - 17f, 0f + num5 - 45f, 250f, 25f);
+
+                                if (aPlayableEntity.hitpoints < 26)
+                                {
+                                    GUIManager.getInstance().DrawTextRightWhite(location10, aPlayableEntity.unitName, Color.red);
+                                }
+                                if (aPlayableEntity.hitpoints > 25 && aPlayableEntity.hitpoints < 50)
+                                {
+                                    GUIManager.getInstance().DrawTextRightWhite(location10, aPlayableEntity.unitName, Color.yellow);
+                                }
+                                if (aPlayableEntity.hitpoints > 49)
+                                {
+                                    GUIManager.getInstance().DrawTextRightWhite(location10, aPlayableEntity.unitName, Color.white);
+                                }
+                                GUIManager.getInstance().DrawProgressBar(new Rect(num6 + 250f, num5 - 45f, 142f, 22f), aPlayableEntity.hitpoints / 100f, true);
+                                Rect location6 = new Rect(num6 + 405f, num5 - 45f, 22f, 22f);
                                 Rect position4 = new Rect(num6 + 440f, num5 - 45f, 22f, 22f);
-                                if (aPlayableEntity.getProfession().getProfessionName() == "Infantry")
-                                {
-                                    Resource resource5 = Resource.FromID(this.guiMgr.weaponsSortType[1]);
-                                    GUI.DrawTexture(location6, resource5.icon);
-                                }
-                                if (aPlayableEntity.getProfession().getProfessionName() == "Archer")
-                                {
-                                    Resource resource5 = Resource.FromID(this.guiMgr.weaponsSortType[5]);
-                                    GUI.DrawTexture(location6, resource5.icon);
-                                }
-                                if (GUI.Button(location6, string.Empty, this.guiMgr.hiddenButtonStyle))
+
+                                if (GUI.Button(location6, string.Empty, GUIManager.getInstance().hiddenButtonStyle))
                                 {
                                     this.controller.GetComponent<ControlPlayer>().MoveToPosition(aPlayableEntity.transform.position);
                                     this.controller.GetComponent<ControlPlayer>().SelectObject(aPlayableEntity.transform, false);
                                 }
-                                if (GUI.Button(new Rect(position4), string.Empty, this.guiMgr.closeWindowButtonStyle))
+                               
+                                GUI.DrawTexture(location6, AManager<AssetManager>.getInstance().GetSkillIconFromProfession(aPlayableEntity.getProfession().getProfessionName()));
+                                if (GUI.Button(new Rect(position4), string.Empty, GUIManager.getInstance().closeWindowButtonStyle))
                                 {
                                     if (!BattleManager.isFighting)
                                     {
@@ -419,7 +565,7 @@ namespace Plugin.Squancher.AdventureMod
                     }
                 }
                 
-                if (this.guiMgr.DrawButton(new Rect(500f - 157f, 30f, 142f, 32f), "Draftees"))
+                if (GUIManager.getInstance().DrawButton(new Rect(500f - 157f, 30f, 142f, 32f), "Draftees"))
                 {
                     openDraft = (openDraft == false) ? true : false;
                 }
@@ -428,23 +574,23 @@ namespace Plugin.Squancher.AdventureMod
                 {
                     if (sizeincrease <= 7)
                     {
-                        this.intendedWindowWidth = 780f;
+                        this.intendedWindowWidth = 800f;
                     }
                     if (sizeincrease >= 8 && sizeincrease <= 14)
                     {
-                        this.intendedWindowWidth = 980f;
+                        this.intendedWindowWidth = 1000f;
                     }
                     if (sizeincrease >= 15 && sizeincrease <= 21)
                     {
-                        this.intendedWindowWidth = 1180f;
+                        this.intendedWindowWidth = 1200f;
                     }
                     if (sizeincrease >= 22 && sizeincrease <= 28)
                     {
-                        this.intendedWindowWidth = 1380f;
+                        this.intendedWindowWidth = 1400f;
                     }
                     if (sizeincrease >= 29 && sizeincrease <= 35)
                     {
-                        this.intendedWindowWidth = 1580f;
+                        this.intendedWindowWidth = 1600f;
                     }
                 }
                 else
@@ -452,7 +598,7 @@ namespace Plugin.Squancher.AdventureMod
                     this.intendedWindowWidth = 490f;
                 }
 
-                if (this.guiMgr.DrawButton(new Rect(500f - 157f, 280f, 142f, 32f), "Send Party"))
+                if (GUIManager.getInstance().DrawButton(new Rect(500f - 157f, 280f, 142f, 32f), "Send Party"))
                 {
                     if(PartySize <= 0)
                     {
@@ -467,6 +613,9 @@ namespace Plugin.Squancher.AdventureMod
                     else
                     {
                         this.CloseWindow();
+                        GUIManager.getInstance().inGame = false;
+                        GUIManager.getInstance().inStartMenu = true;
+                        GUIManager.getInstance().startMenu = "";
                         AManager<WorldManager>.getInstance().SaveGame();
                         AManager<TimeManager>.getInstance().pause();
                         TransitionScreen.OpenWindow();
@@ -483,7 +632,7 @@ namespace Plugin.Squancher.AdventureMod
                 CloseWindow();
                 return;
             }
-            if (!this.guiMgr.inGame)
+            if (!GUIManager.getInstance().inGame)
             {
                 return;
             }
@@ -491,8 +640,9 @@ namespace Plugin.Squancher.AdventureMod
             {
                 return;
             }
+            
             this.windowRect.width = Mathf.Min(this.intendedWindowWidth, (float)(Screen.width - 4));
-            this.windowRect = GUI.Window(190, this.windowRect, new GUI.WindowFunction(this.RenderWindow), string.Empty, this.guiMgr.hiddenButtonStyle);
+            this.windowRect = GUI.Window(190, this.windowRect, new GUI.WindowFunction(this.RenderWindow), string.Empty, GUIManager.getInstance().hiddenButtonStyle);
             GUI.FocusWindow(190);
             this.windowRect.x = Mathf.Clamp(this.windowRect.x, 2f, (float)Screen.width - this.windowRect.width - 2f);
             this.windowRect.y = Mathf.Clamp(this.windowRect.y, 40f, (float)Screen.height - this.windowRect.height - 2f);
@@ -521,6 +671,7 @@ namespace Plugin.Squancher.AdventureMod
                 }
                 //BattleManager.Reward(1);
             }
+             
 
             if (Input.GetKeyDown(KeyCode.M))
             {
@@ -536,10 +687,13 @@ namespace Plugin.Squancher.AdventureMod
                     BattleManager.Reward(1);
                     BattleOverMenu.CloseWindow();
                 }
-                for (int i = 0; i < BattleManager.bonusLoot; i++)
+                for (int i = 0; i < BattleManager.rewards.Count; i++)
                 {
                     GUIManager.getInstance().AddTextLine(""+ BattleManager.bonusLoot +" : " + BattleManager.rewards.Count +" : " + BattleManager.rewards.Find(x => x.id == i).type + " : " + +BattleManager.rewards.Find(x => x.id == i).itemid + " : " + BattleManager.rewards.Find(x => x.id == i).amount);
                 }
+
+
+                GUIManager.getInstance().AddTextLine("" + AManager<ResourceManager>.getInstance().getWealth());
             }
 
             if (Input.GetKeyDown(KeyCode.K))
@@ -548,11 +702,12 @@ namespace Plugin.Squancher.AdventureMod
                 {
                     if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(entity.faction) != Alignment.Ally)
                     {
-                        entity.Destroy();
+                        entity.hitpoints = 0;
                     }
                 }
             }
-            */
+           */
+
             if (Input.GetKeyDown(KeyCode.Tab))
             {
                 if (IsOpen())
