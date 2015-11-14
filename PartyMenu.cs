@@ -352,11 +352,6 @@ namespace Plugin.Squancher.AdventureMod
                         {
                             if (!draftees.Find(x => x.uName == aPlayableEntity.unitName).isEnlisted)
                             {
-                                if (aPlayableEntity.getProfession().getProfessionName() == "Infantry" || aPlayableEntity.getProfession().getProfessionName() == "Archer")
-                                {
-                                    aPlayableEntity.preferences["preference.attackchargetargets"] = bSeekTarget;
-                                }
-
                                 if (bShowMilitary && (aPlayableEntity.getProfession().getProfessionName() == "Infantry" || aPlayableEntity.getProfession().getProfessionName() == "Archer"))
                                 {
                                     sizeincrease++;
@@ -523,6 +518,10 @@ namespace Plugin.Squancher.AdventureMod
                             }
                             else
                             {
+                                if (aPlayableEntity.getProfession().getProfessionName() == "Infantry" || aPlayableEntity.getProfession().getProfessionName() == "Archer")
+                                {
+                                    aPlayableEntity.preferences["preference.attackchargetargets"] = bSeekTarget;
+                                }
                                 Rect location10 = new Rect(0f + num6 - 37f, 0f + num5 - 45f, 250f, 25f);
 
                                 if (aPlayableEntity.hitpoints < 26)
@@ -632,7 +631,7 @@ namespace Plugin.Squancher.AdventureMod
                 CloseWindow();
                 return;
             }
-            if (!GUIManager.getInstance().inGame)
+            if (!GUIManager.getInstance().inGame && !BattleManager.isFighting)
             {
                 return;
             }

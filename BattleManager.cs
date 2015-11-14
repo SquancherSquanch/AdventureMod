@@ -451,17 +451,16 @@ namespace Plugin.Squancher.AdventureMod
         {
             int eNum = 0;
 
-            foreach (ALivingEntity allEntities in UnitManager.getInstance().allUnits)
+            foreach (ALivingEntity entity in UnitManager.getInstance().allUnits)
             {
-                if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(allEntities.faction) != Alignment.Ally)
+                if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(entity.faction) != Alignment.Ally)
                 {
                     if (isFighting && isPlaced)
                     {
-                        if (allEntities.isAlive())
+                        if (entity.isAlive())
                         {
                             eNum++;
                         }
-                        
                     }
                 }
             }
@@ -515,6 +514,16 @@ namespace Plugin.Squancher.AdventureMod
 
         public void Update()
         {
+            if (!isFighting)
+            {
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                AManager<TimeManager>.getInstance().play();
+            }
+
             if (Input.GetKeyUp(KeyCode.Mouse0))
             {
                 if (isPlacingUnits)
@@ -531,7 +540,12 @@ namespace Plugin.Squancher.AdventureMod
                         isPlaced = true;
                         //StartPosition = CheckPosition();
                         BattleStartMenu.CloseWindow();
+                        /************
+                        * BattleGui here! when initiated take the inGame back in all functions
+                        * Make a in battle !inGame comparison.
+                        ************/
                         GUIManager.getInstance().inGame = true;
+                        
                     }
                 }
             }
