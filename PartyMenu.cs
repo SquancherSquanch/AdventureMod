@@ -397,6 +397,12 @@ namespace Plugin.Squancher.AdventureMod
                 AManager<TimeManager>.getInstance().pause();
                 TransitionScreen.OpenWindow();
                 AdventureMap.OpenWindow();
+                DesignManager designManager = new DesignManager();
+                AManager<DesignManager>.getInstance().farmZones.Clear();
+                AManager<DesignManager>.getInstance().livestockZones.Clear();
+                AManager<DesignManager>.getInstance().roadZones.Clear();
+                AManager<DesignManager>.getInstance().guardPositions.Clear();
+                AManager<DesignManager>.getInstance().selectedBlocks.Clear();
             }
         }
 
@@ -432,6 +438,7 @@ namespace Plugin.Squancher.AdventureMod
                 //BattleManager.TransferLoot();
                 //BattleOverMenu.OpenWindow();
             }
+            
             if (Input.GetKeyDown(KeyCode.N))
             {
                 toggle = (toggle == false) ? true : false;
@@ -472,7 +479,14 @@ namespace Plugin.Squancher.AdventureMod
             
             if (Input.GetKeyDown(KeyCode.K))
             {
-                MessengerMenu.OpenWindow();
+
+                foreach (ALivingEntity entity in UnitManager.getInstance().allUnits)
+                {
+                    if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(entity.faction) != Alignment.Ally)
+                    {
+                        entity.hitpoints = 0;
+                    }
+                }
             }
             */
             if (Input.GetKeyDown(KeyCode.Tab))

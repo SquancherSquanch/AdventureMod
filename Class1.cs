@@ -72,6 +72,13 @@ namespace Plugin.Squancher.AdventureMod
                 PartyMenu.draftees.Remove(PartyMenu.draftees.Find(x => x.uName == deadDraftee));
             }
             */
+            if (MessengerManager.messengerEntity != null)
+            {
+                if (deadDraftee == MessengerManager.messengerEntity.unitName)
+                {
+                    evt.getUnit().Destroy();
+                }
+            }
             if (PartyManager.draftees.Exists(x => x.uName == deadDraftee))
             {
                 PartyManager.draftees.Remove(PartyManager.draftees.Find(x => x.uName == deadDraftee));
