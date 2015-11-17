@@ -13,115 +13,98 @@ using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
 namespace Plugin.Squancher.AdventureMod
-{ 
-    public class Messenger : MonoBehaviour
+{
+    public class Messenger : AProfession<HumanEntity>
     {
-        public static bool bAdventureMapOpen, isMapCreated, isAwaitingResults;
-        public static HumanEntity MessengerEntity;
-        private int MessengerOdds;
-        public static int day;
-        private bool hasRolledToday;
-
-        private Messenger()
+        public static List<string> workPools;
+        QuestManager questManager = new QuestManager();
+        public Messenger(HumanEntity unit, int exp) : base(unit, exp)
         {
         }
 
-        public void Start()
+        static Messenger()
         {
-            hasRolledToday = true;
+            // Note: this type is marked as 'beforefieldinit'.
+            List<string> list = new List<string>();
+            list.Add("default.faction");
+            list.Add("vanilla.build.structure");
+            list.Add("vanilla.upgrade.storage");
+            list.Add("vanilla.fish");
+            Fisherman.workPools = list;
         }
 
-        public static void SpawnMessenger()
+        public override Transform getModel(bool female)
         {
-            Vector3 vector;
-            if (AManager<DesignManager>.getInstance().edgeRoads.Count == 0)
+            int i = UnityEngine.Random.Range(0, 13);
+            questManager.QuestType = i;
+            questManager.LoadQuest();
+            switch (i)
             {
-                return;
+                case 0:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanArcherModel_M : AManager<AssetManager>.getInstance().humanArcherModel_F;
+                case 1:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanBlacksmithModel_M : AManager<AssetManager>.getInstance().humanBlacksmithModel_F;
+                case 2:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanBuilderModel_M : AManager<AssetManager>.getInstance().humanBuilderModel_F;
+                case 3:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanCarpenterModel_M : AManager<AssetManager>.getInstance().humanCarpenterModel_F;
+                case 4:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanEngineerModel_M : AManager<AssetManager>.getInstance().humanEngineerModel_F;
+                case 5:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanFarmerModel_M : AManager<AssetManager>.getInstance().humanFarmerModel_F;
+                case 6:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanFishermanModel_M : AManager<AssetManager>.getInstance().humanFishermanModel_F;
+                case 7:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanForagerModel_M : AManager<AssetManager>.getInstance().humanForagerModel_F;
+                case 8:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanHerderModel_M : AManager<AssetManager>.getInstance().humanHerderModel_F;
+                case 9:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanInfantryModel_M : AManager<AssetManager>.getInstance().humanInfantryModel_F;
+                case 10:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanMinerModel_M : AManager<AssetManager>.getInstance().humanMinerModel_F;
+                case 11:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanStoneMasonModel_M : AManager<AssetManager>.getInstance().humanStoneMasonModel_F;
+                case 12:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanTailorModel_M : AManager<AssetManager>.getInstance().humanTailorModel_F;
+                case 13:
+                    return (!female) ? AManager<AssetManager>.getInstance().humanWoodChopperModel_M : AManager<AssetManager>.getInstance().humanWoodChopperModel_F;
             }
-            int num = UnityEngine.Random.Range(0, 4);
-            if (num == 0 && !AManager<DesignManager>.getInstance().edgeRoadSouth)
-            {
-                return;
-            }
-            if (num == 1 && !AManager<DesignManager>.getInstance().edgeRoadNorth)
-            {
-                return;
-            }
-            if (num == 2 && !AManager<DesignManager>.getInstance().edgeRoadEast)
-            {
-                return;
-            }
-            if (num == 3 && !AManager<DesignManager>.getInstance().edgeRoadWest)
-            {
-                return;
-            }
-            vector = AManager<DesignManager>.getInstance().edgeRoads[UnityEngine.Random.Range(0, AManager<DesignManager>.getInstance().edgeRoads.Count - 1)].world + Vector3.up * AManager<ChunkManager>.getInstance().voxelSize;
-            //UnitManager.getInstance().AddHumanUnit();
-            Debug.Log(vector);
-            HumanEntity humanEntity = AManager<AssetManager>.getInstance().InstantiateUnit<HumanEntity>();
-            humanEntity.unitName = "Messenger";
-            humanEntity.fatigue = 1f;
-            humanEntity.hunger = 0f;
-            humanEntity.maxHP = 100f;
-            humanEntity.hitpoints = 100f;
-            humanEntity.coordinate = Coordinate.FromWorld(vector);
-            humanEntity.faction = AManager<WorldManager>.getInstance().MigrantFaction;
-            humanEntity.spottedTimer = 600000f;
-            humanEntity.addProfession(new Fisherman(humanEntity, 0));
-            humanEntity.SetProfession(typeof(Fisherman));
-            humanEntity.preferences["migrant.leaving"] = true;
-            humanEntity.interruptTask(new TaskMoveToHall(humanEntity));
-            //base.StartCoroutine(UnitManager.getInstance().ReportMerchant(humanEntity.transform));
-            UnitManager.getInstance().visitors.Add(humanEntity.transform);
-            MessengerEntity = humanEntity;
-            isAwaitingResults = true;
-            day = AManager<TimeManager>.getInstance().day;
+            return (!female) ? AManager<AssetManager>.getInstance().humanFishermanModel_M : AManager<AssetManager>.getInstance().humanFishermanModel_F;
         }
 
-        public void OnGUI()
-        { 
-            if (!BattleManager.isInTown)
+        public override Texture2D getAvatar(bool female)
+        {
+            //Later match switch case to enhance quest GUI.
+            return (!female) ? AManager<AssetManager>.getInstance().imageFisherman_M : AManager<AssetManager>.getInstance().imageFisherman_F;
+        }
+
+        public override string getProfessionName()
+        {
+            return "Messenger";
+        }
+
+        public override ItemList GetDefaultItems()
+        {
+            return null;
+        }
+
+        public override List<string> getWorkPools()
+        {
+            return new List<string>();
+        }
+
+        public override ATask getProfessionTask()
+        {
+            if (this.unit.faction != null)
             {
-                return;
-            }
-            if(MessengerEntity!= null)
-            { 
-                if (MessengerEntity.getWhatImDoing().Contains("Leaving map") && isAwaitingResults)
+                AWorkTask work = this.unit.faction.getWorkPool().getWork(this.unit, Fisherman.workPools.ToArray());
+                if (work != null)
                 {
-                    AManager<TimeManager>.getInstance().pause();
-                    MessengerMenu.OpenWindow();
-                    //GUIManager.getInstance().AddTextLine("Load gui here!");
+                    work.unit = this.unit;
+                    return work;
                 }
             }
-            if(AManager<TimeManager>.getInstance().timeOfDay == "Morning")
-            {
-                
-                if (!hasRolledToday)
-                {
-                    MessengerOdds = (int)UnityEngine.Random.Range(0f, 100f);
-                    if ( MessengerOdds < 25f)
-                    {
-                        SpawnMessenger();
-                        //GUIManager.getInstance().AddTextLine("Messenger Spawned! Odds = " + MessengerOdds);
-                    }
-                    hasRolledToday = true;
-                    day = AManager<TimeManager>.getInstance().day;
-                    //GUIManager.getInstance().AddTextLine("Roll failed, good luck tomorrow! Odds = "+ MessengerOdds);
-                }
-                else
-                {
-                    if (day != AManager<TimeManager>.getInstance().day)
-                    {
-                        day = AManager<TimeManager>.getInstance().day;
-                        hasRolledToday = false;
-                        //GUIManager.getInstance().AddTextLine("Roll reset!");
-                    }
-                }
-            }
-        }
-
-        public void Update()
-        {
+            return null;
         }
     }
 }

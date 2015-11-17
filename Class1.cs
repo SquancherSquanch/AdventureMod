@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Timber_and_Stone.Tasks;
 using Timber_and_Stone.Utility;
@@ -25,14 +24,19 @@ namespace Plugin.Squancher.AdventureMod
             worldManager = WorldManager.getInstance();
             GUIManager.getInstance().AddTextLine("Adventure Mod Loaded");
             GUIManager.getInstance().gameObject.AddComponent(typeof(AdventureMap));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(PartyMenu));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(BattleManager));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(Draftees));
             GUIManager.getInstance().gameObject.AddComponent(typeof(TransitionScreen));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(Messenger));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(PartyMenu));
             GUIManager.getInstance().gameObject.AddComponent(typeof(BattleStartMenu));
             GUIManager.getInstance().gameObject.AddComponent(typeof(BattleOverMenu));
             GUIManager.getInstance().gameObject.AddComponent(typeof(MessengerMenu));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(QuestMenu));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(BattleManager));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(MessengerManager));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(QuestManager));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(PartyManager));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(Draftees));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(Messenger));
+
         }
 
         public override void OnEnable()
@@ -68,16 +72,16 @@ namespace Plugin.Squancher.AdventureMod
                 PartyMenu.draftees.Remove(PartyMenu.draftees.Find(x => x.uName == deadDraftee));
             }
             */
-            if (PartyMenu.draftees.Exists(x => x.uName == deadDraftee))
+            if (PartyManager.draftees.Exists(x => x.uName == deadDraftee))
             {
-                PartyMenu.draftees.Remove(PartyMenu.draftees.Find(x => x.uName == deadDraftee));
+                PartyManager.draftees.Remove(PartyManager.draftees.Find(x => x.uName == deadDraftee));
             }
         }
 
         [EventHandler(Priority.Monitor)]
         public void onMigrantAcceptMonitor(EventMigrantAccept evt)
-        { 
-            PartyMenu.draftees.Add(new Draftees() { UnitId = PartyMenu.draftees.Count, uName = evt.unit.unitName, Health = evt.unit.hitpoints, Experience = evt.unit.getProfession().currentXP, isEnlisted = false });
+        {
+            PartyManager.draftees.Add(new Draftees() { UnitId = PartyManager.draftees.Count, uName = evt.unit.unitName, Health = evt.unit.hitpoints, Experience = evt.unit.getProfession().currentXP, isEnlisted = false });
         }
 
         [EventHandler(Priority.Monitor)]
@@ -90,7 +94,10 @@ namespace Plugin.Squancher.AdventureMod
         {
             if (evt.invasion.getName() == "wolf" || evt.invasion.getName() == "spider" || evt.invasion.getName() == "skeleton" || evt.invasion.getName() == "necromancer" || evt.invasion.getName() == "goblin")
             {
-                GUIManager.getInstance().AddTextLine("A " + evt.invasion.getName() + " has found you!");
+                if (BattleManager.isFighting && BattleManager.isPlaced)
+                {
+                    GUIManager.getInstance().AddTextLine("A " + evt.invasion.getName() + " has found you!");
+                }
                 BattleOverMenu.invasion = evt.invasion.getName();
                 BattleManager.invasion = evt.invasion.getName();
             }
@@ -107,7 +114,7 @@ namespace Plugin.Squancher.AdventureMod
 
             if (!AdventureMap.isMapCreated)
             {
-                Messenger.day = AManager<TimeManager>.getInstance().day;
+                MessengerManager.day = AManager<TimeManager>.getInstance().day;
                 AManager<MapManager>.getInstance().CreateWorldMap();
                 AdventureMap.isMapCreated = true;
             }
@@ -124,9 +131,10 @@ namespace Plugin.Squancher.AdventureMod
                 BattleManager.isStartingFight = false;
             }
 
-            if (PartyMenu.draftees.Count <= 0)
+            if (PartyManager.draftees.Count <= 0)
             {
-                PartyMenu.ManageParty(0);
+                PartyManager partyManager = new PartyManager();
+                partyManager.ManageParty(0);
             }
         }
     }

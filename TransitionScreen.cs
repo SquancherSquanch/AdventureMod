@@ -50,7 +50,26 @@ namespace Plugin.Squancher.AdventureMod
             Rect location6 = new Rect((float)(Screen.width / 2 - 270), 32f, 580f, 180f);
             GUIManager.getInstance().DrawWindow(location6, "Fight Initiated!", false);
             //GUIManager.getInstance().DrawWindow(location6, "" + GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().WorldPositionAtMouse(), false);
-            GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 30f, location6.width - 16f, 110f), "Left click to place party!");
+            GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 30f, location6.width - 16f, 110f), "Left click to place a unit.");
+            GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 60f, location6.width - 16f, 110f), "E/Q to rotate unit.");
+            GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 90f, location6.width - 16f, 110f), "TAB to replace unit.");
+            if (BattleManager.UnitsToPlace == 0)
+            {
+                if (GUIManager.getInstance().DrawButton(new Rect(Screen.width / 2 - 100, location6.yMin + 130f, 200f, 34f), "Ready"))
+                {
+                    BattleManager.isPlacingUnits = false;
+                    BattleManager.isPlacingUnits2 = false;
+                    BattleManager.isPlaced = true;
+                    GUIManager.getInstance().inGame = true;
+                    BattleManager.GetEnemyTarget();
+                    CloseWindow();
+                    /************
+                    * BattleGui here! when initiated take the inGame back in all functions
+                    * Make a in battle !inGame comparison.
+                    ************/
+                    
+                }
+            }
         }
 
         public void OnGUI()
@@ -233,6 +252,10 @@ namespace Plugin.Squancher.AdventureMod
 
         public void OnGUI()
         {
+            if (!GUIManager.getInstance().inGame)
+            {
+                return;
+            }
             if (!IsOpen())
             {
                 return;

@@ -46,9 +46,8 @@ namespace Plugin.Squancher.AdventureMod
 
     public class BattleManager : MonoBehaviour
     {
-        public static int time, timesinceload;
-        public static bool bAdventureMapOpen, isMapCreated, isStartingFight, isFighting, isPlacingUnits, isPlacingUnits2, isPlaced, isBattleOver, isFromTown, isToTown, isArrivingTown, isInTown;
-        GUIManager guiMgr = GUIManager.getInstance();
+        public static int time, timesinceload, tick;
+        public static bool bAdventureMapOpen, isMapCreated, isStartingFight, isFighting, isPlacingUnits, isPlacingUnits2, isPlaced, isBattleAi, isBattleOver, isFromTown, isToTown, isArrivingTown, isInTown;
         GameSave gamesave;
         private bool reverseSort;
         public static string invasion;
@@ -69,7 +68,7 @@ namespace Plugin.Squancher.AdventureMod
         public Type professionSort;
         public float bounty1, bounty2;
         public static Vector3 StartPosition;
-        
+        public static APlayableEntity enemiesTarget;
 
         private BattleManager()
         {
@@ -80,67 +79,7 @@ namespace Plugin.Squancher.AdventureMod
             isInTown = true;
         }
 
-        private APlayableEntity[] SortUnits(APlayableEntity[] sortedUnits)
-        {
-            UnitList.SortType sortType = this.sortType;
-            if (sortType != UnitList.SortType.NAME)
-            {
-                if (sortType == UnitList.SortType.PROFESSION)
-                {
-                    Array.Sort<APlayableEntity>(sortedUnits, delegate (APlayableEntity U1, APlayableEntity U2)
-                    {
-                        AProfession profession = U1.getProfession(this.professionSort);
-                        AProfession profession2 = U2.getProfession(this.professionSort);
-                        if (profession == null && profession2 == null)
-                        {
-                            return 0;
-                        }
-                        if (profession == null)
-                        {
-                            return -1;
-                        }
-                        if (profession2 == null)
-                        {
-                            return 1;
-                        }
-                        int num = profession.getLevel().CompareTo(profession2.getLevel());
-                        if (num == 0)
-                        {
-                            AProfession profession3 = U1.getProfession();
-                            AProfession profession4 = U2.getProfession();
-                            if (profession3 == profession && profession4 == profession2)
-                            {
-                                return 0;
-                            }
-                            if (profession3 == profession)
-                            {
-                                return 1;
-                            }
-                            if (profession4 == profession2)
-                            {
-                                return -1;
-                            }
-                        }
-                        return num;
-                    });
-                    if (!this.reverseSort)
-                    {
-                        Array.Reverse(sortedUnits);
-                    }
-                }
-            }
-            else
-            {
-                Array.Sort<APlayableEntity>(sortedUnits, (APlayableEntity U1, APlayableEntity U2) => U1.unitName.CompareTo(U2.unitName));
-                if (this.reverseSort)
-                {
-                    Array.Reverse(sortedUnits);
-                }
-            }
-            return sortedUnits;
-        }
-        
-        public void DestoryAll()
+        public static void DestoryAll()
         {
 
             foreach (ALivingEntity allEntities in UnitManager.getInstance().allUnits)
@@ -165,53 +104,112 @@ namespace Plugin.Squancher.AdventureMod
             }
         }
 
-        public static int PrepBattleField(int trade)
+        public static void PrepBattleField()
         {
+            PartyManager partyManager = new PartyManager();
             APlayableEntity[] array = Enumerable.ToArray<APlayableEntity>(Enumerable.Where<APlayableEntity>(Enumerable.OfType<APlayableEntity>(AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units), (APlayableEntity unit) => unit.isAlive()));
-            BattleManager battleManager = new BattleManager();
-            battleManager.SortUnits(array);
+            partyManager.SortUnits(array);
 
             for (int i = 0; i < array.Length; i++)
             {
                 APlayableEntity aPlayableEntity = array[i];
                 if (aPlayableEntity.isAlive())
                 {
-                    if (PartyMenu.draftees.Count != 0)
+                    if (PartyManager.draftees.Count != 0)
                     {
                         //place unit before battle
-                        if (trade == 0)
+                        if (PartyManager.draftees.Contains(new Draftees { uName = aPlayableEntity.unitName }))
                         {
-                        
-                            if (PartyMenu.draftees.Contains(new Draftees { uName = aPlayableEntity.unitName }))
+                            if (PartyManager.draftees.Find(x => x.uName == aPlayableEntity.unitName).isEnlisted)
                             {
-                                if (PartyMenu.draftees.Find(x => x.uName == aPlayableEntity.unitName).isEnlisted)
-                                {
-                                    aPlayableEntity.transform.position = new Vector3(1, 100, 1);
-                                    aPlayableEntity.coordinate = Coordinate.FromWorld(aPlayableEntity.transform.position);
-                                }
-                                else
-                                {
-                                    aPlayableEntity.Destroy();
-                                }
+                                aPlayableEntity.transform.position = new Vector3(0, 100, 0);
+                                aPlayableEntity.coordinate = Coordinate.FromWorld(aPlayableEntity.transform.position);
+                            }
+                            else
+                            {
+                                aPlayableEntity.Destroy();
                             }
                         }
                     }
                 }
             }
-            EnemyCount = GetEnemyRemaining();
-            return trade;
+        }
+
+        public static void RecantPlacedUnits()
+        {
+            PartyManager partyManager = new PartyManager();
+            if (UnitsToPlace >= 0 && UnitsToPlace < PartyManager.PartySize)
+            {
+                
+                APlayableEntity[] array = Enumerable.ToArray<APlayableEntity>(Enumerable.Where<APlayableEntity>(Enumerable.OfType<APlayableEntity>(AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units), (APlayableEntity unit) => unit.isAlive()));
+                BattleManager battleManager = new BattleManager();
+                partyManager.SortUnits(array);
+                if (UnitsToPlace == 0)
+                {
+                    UnitsToPlace++;
+                    array[UnitsToPlace - 1].transform.position = new Vector3(0, 100, 0);
+                    array[UnitsToPlace - 1].coordinate = Coordinate.FromWorld(array[UnitsToPlace].transform.position);
+                }
+                else
+                {
+                    array[UnitsToPlace - 1].transform.position = new Vector3(0, 100, 0);
+                    array[UnitsToPlace - 1].coordinate = Coordinate.FromWorld(array[UnitsToPlace - 1].transform.position);
+                    UnitsToPlace++;
+                }
+                
+            }
         }
 
         public static void PlaceUnits()
         {
+            PartyManager partyManager = new PartyManager();
             APlayableEntity[] array = Enumerable.ToArray<APlayableEntity>(Enumerable.Where<APlayableEntity>(Enumerable.OfType<APlayableEntity>(AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units), (APlayableEntity unit) => unit.isAlive()));
-            BattleManager battleManager = new BattleManager();
-            battleManager.SortUnits(array);
+            partyManager.SortUnits(array);
+
+            RaycastHit raycastHit;
+            Vector3[] array2;
+            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out raycastHit))
+            {
+                if (raycastHit.transform.tag == "PickPlane")
+                {
+                    Vector3 normalized = (raycastHit.point - Camera.main.transform.position).normalized;
+                    array2 = AManager<ChunkManager>.getInstance().Pick(raycastHit.point, normalized, true);
+                }
+                else
+                {
+                    array2 = AManager<ChunkManager>.getInstance().Pick(Camera.main.transform.position, Camera.main.ScreenPointToRay(Input.mousePosition).direction, true);
+                    if (array == null)
+                    {
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                array2 = AManager<ChunkManager>.getInstance().Pick(Camera.main.transform.position, Camera.main.ScreenPointToRay(Input.mousePosition).direction, true);
+                if (array == null)
+                {
+                    return;
+                }
+            }
+            Vector3 a = new Vector3(array2[1].x, array2[1].y, array2[1].z);
+            Vector3 vector = a + array2[2];
+            Vector3 vector2 = AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], vector);
+            vector2 += new Vector3(0f, -0.2f / 2f, 0f);
+
+            array[UnitsToPlace-1].transform.position = vector2;
+            array[UnitsToPlace-1].coordinate = Coordinate.FromWorld(array[UnitsToPlace-1].transform.position);
+        }
+
+        public static void RotateUnit(int i)
+        {
+            PartyManager partyManager = new PartyManager();
+            APlayableEntity[] array = Enumerable.ToArray<APlayableEntity>(Enumerable.Where<APlayableEntity>(Enumerable.OfType<APlayableEntity>(AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units), (APlayableEntity unit) => unit.isAlive()));
+            partyManager.SortUnits(array);
             StartPosition = GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().WorldPositionAtMouse();
-            
-            
-            array[UnitsToPlace-1].transform.position = new Vector3(StartPosition.x, StartPosition.y, StartPosition.z);
-            array[UnitsToPlace - 1].coordinate = Coordinate.FromWorld(array[UnitsToPlace - 1].transform.position);
+            Vector3 eulerAngles = WorldManager.getInstance().controllerObj.eulerAngles;
+            eulerAngles.y = i == 0 ? 45f : -45f;
+            array[UnitsToPlace - 1].transform.Rotate(eulerAngles);
         }
 
         public static void Reward(int clear = 0)
@@ -357,14 +355,16 @@ namespace Plugin.Squancher.AdventureMod
             AManager<ChunkManager>.getInstance().DeleteChunkData();
             GUIManager.getInstance().selectedBlock = null;
             DestoryAll();
-            AManager<WorldManager>.getInstance().settlementName = "Test Dungeon";
+            int river = UnityEngine.Random.Range(0, 100);
+            float forest = UnityEngine.Random.Range(0f, 0.5f);
+            AManager<WorldManager>.getInstance().settlementName = "Away on Battle";
             AManager<WorldManager>.getInstance().animalSheep = 0f;
             AManager<WorldManager>.getInstance().animalBoar = 0f;
             AManager<WorldManager>.getInstance().animalChicken = 0f;
-            AManager<WorldManager>.getInstance().mountains = 0f;
-            AManager<WorldManager>.getInstance().trees = 0.2f;
-            int river = UnityEngine.Random.Range(0, 100);
-            AManager<WorldManager>.getInstance().river = false;
+            float mountain = UnityEngine.Random.Range(0f, 0.1f);
+            AManager<WorldManager>.getInstance().mountains = river <= 50 ? 0f + mountain : 0.05f;
+            AManager<WorldManager>.getInstance().trees = 0.2f + forest;
+            AManager<WorldManager>.getInstance().river = river <= 50 ? false : true ;
             AManager<WorldManager>.getInstance().coast = false;
             AManager<WorldManager>.getInstance().CreateNewGame(AManager<WorldManager>.getInstance().settlementName, new Vector3i(2, 48, 2));
             GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
@@ -374,7 +374,7 @@ namespace Plugin.Squancher.AdventureMod
             float num = -650f;
             if(AManager<ResourceManager>.getInstance().getWealth() <= 0)
             {
-                num += 50f * (float)AManager<WorldManager>.getInstance().PlayerFaction.LiveUnitCount();
+                num += 75f * (float)AManager<WorldManager>.getInstance().PlayerFaction.LiveUnitCount();
             }
             else
             {
@@ -412,13 +412,15 @@ namespace Plugin.Squancher.AdventureMod
             GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
             GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
             AManager<GUIManager>.getInstance().inGame = true;
+            QuestManager.isOnQuest = false;
+            QuestManager.quest.Clear();
         }
 
         public static void SendPartyOnQuest()
         {
             isInTown = false;
             isStartingFight = true;
-            PrepBattleField(0);
+            PrepBattleField();
             BattleManager battlemanager = new BattleManager();
             battlemanager.LoadBattle();
             AManager<WorldManager>.getInstance().enableSaving = false;
@@ -426,21 +428,23 @@ namespace Plugin.Squancher.AdventureMod
             isPlacingUnits2 = true;
             isFighting = true;
             BattleStartMenu.OpenWindow();
-            UnitsToPlace = PartyMenu.PartySize;
+            UnitsToPlace = PartyManager.PartySize;
         }
 
         public static void SendPartyBackHome()
         {
+            PartyManager partyManager = new PartyManager();
             isFighting = false;
             isPlaced = false;
+            isBattleAi = false;
             isBattleOver = false;
             isToTown = false;
             isInTown = true;
             isArrivingTown = true;
-            PartyMenu.ManageParty(1);
+            partyManager.ManageParty(1);
             BattleManager battleManager = new BattleManager();
             battleManager.LoadHome();
-            if (WorldManager.getInstance().settlementName.ToString() != PluginMain.File)
+            if (WorldManager.getInstance().settlementName == "Away on Battle")
             {
                 WorldManager.getInstance().settlementName = PluginMain.File;
             }
@@ -461,6 +465,7 @@ namespace Plugin.Squancher.AdventureMod
                         {
                             eNum++;
                         }
+                        
                     }
                 }
             }
@@ -468,22 +473,37 @@ namespace Plugin.Squancher.AdventureMod
             return eNum;
         }
 
+        public static void GetEnemyTarget()
+        {
+            PartyManager partyManager = new PartyManager();
+            APlayableEntity[] array = Enumerable.ToArray<APlayableEntity>(Enumerable.Where<APlayableEntity>(Enumerable.OfType<APlayableEntity>(AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units), (APlayableEntity unit) => unit.isAlive()));
+            partyManager.SortUnits(array);
+            int i = UnityEngine.Random.Range(0, PartyManager.PartySize -1);
+            foreach (ALivingEntity entity in UnitManager.getInstance().allUnits)
+            {
+                if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(entity.faction) != Alignment.Ally)
+                {
+                    if (entity.getWhatImDoing().Contains("Waiting"))
+                    {
+                        entity.interruptTask(new TaskAttack(entity, array[i].transform));
+                    }
+                }
+            }
+        }
+
+
         public void OnGUI()
         {
-            if (isPlacingUnits2)
-            {
-                PlaceUnits();
-            }
-
             if (isArrivingTown)
             {
                 if (isInTown)
                 {
                     timesinceload++;
-                    if(timesinceload >= 10f)
+                    if (timesinceload >= 10f)
                     {
                         isArrivingTown = false;
-                        PartyMenu.ManageParty(2);
+                        PartyManager partyManager = new PartyManager();
+                        partyManager.ManageParty(2);
                         TransferLoot();
                         timesinceload = 0;
                     }
@@ -509,6 +529,18 @@ namespace Plugin.Squancher.AdventureMod
                         }
                     }
                 }
+
+                //if (!isBattleAi)
+                //{
+                    tick++;
+                    if (tick >= 2000f)
+                    {
+                        //GUIManager.getInstance().AddTextLine("Getting Targets");
+                        GetEnemyTarget();
+                        isBattleAi = true;
+                        tick = 0;
+                    }
+                //}
             }
         }
 
@@ -519,33 +551,46 @@ namespace Plugin.Squancher.AdventureMod
                 return;
             }
 
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (isPlacingUnits2)
             {
-                AManager<TimeManager>.getInstance().play();
+                if (UnitsToPlace > 0)
+                {
+                    PlaceUnits();
+                }
+                GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().DeSelect();
+            }
+
+            if (Input.GetKeyUp(KeyCode.Tab))
+            {
+                if(isPlacingUnits)
+                {
+                    RecantPlacedUnits();
+                }
+            }
+
+            if (Input.GetKeyUp(KeyCode.Q))
+            {
+                if (isPlacingUnits)
+                {
+                    RotateUnit(1);
+                }
+            }
+
+            if (Input.GetKeyUp(KeyCode.E))
+            {
+                if (isPlacingUnits)
+                {
+                    RotateUnit(0);
+                }
             }
 
             if (Input.GetKeyUp(KeyCode.Mouse0))
             {
                 if (isPlacingUnits)
                 {
-                    if ( UnitsToPlace > 1)
+                    if (UnitsToPlace > 0)
                     {
                         UnitsToPlace--;
-                    }
-                    else
-                    {
-                        UnitsToPlace--;
-                        isPlacingUnits = false;
-                        isPlacingUnits2 = false;
-                        isPlaced = true;
-                        //StartPosition = CheckPosition();
-                        BattleStartMenu.CloseWindow();
-                        /************
-                        * BattleGui here! when initiated take the inGame back in all functions
-                        * Make a in battle !inGame comparison.
-                        ************/
-                        GUIManager.getInstance().inGame = true;
-                        
                     }
                 }
             }
