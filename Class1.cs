@@ -81,7 +81,20 @@ namespace Plugin.Squancher.AdventureMod
             }
             if (PartyManager.draftees.Exists(x => x.uName == deadDraftee))
             {
+                
+                if (PartyManager.draftees.Find(x => x.uName == evt.getUnit().unitName).isEnlisted)
+                {
+                    if (PartyManager.PartySize > 0)
+                    {
+                        PartyManager.PartySize--;
+                    }
+                }
                 PartyManager.draftees.Remove(PartyManager.draftees.Find(x => x.uName == deadDraftee));
+                if (BattleManager.isInTown)
+                {
+                    PartyManager partyManager = new PartyManager();
+                    partyManager.ManageParty(2);
+                }
             }
         }
 

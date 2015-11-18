@@ -398,11 +398,11 @@ namespace Plugin.Squancher.AdventureMod
                 TransitionScreen.OpenWindow();
                 AdventureMap.OpenWindow();
                 DesignManager designManager = new DesignManager();
-                AManager<DesignManager>.getInstance().farmZones.Clear();
-                AManager<DesignManager>.getInstance().livestockZones.Clear();
-                AManager<DesignManager>.getInstance().roadZones.Clear();
-                AManager<DesignManager>.getInstance().guardPositions.Clear();
-                AManager<DesignManager>.getInstance().selectedBlocks.Clear();
+                //designManager.farmZones.Clear();
+                //designManager.livestockZones.Clear();
+                //designManager.roadZones.Clear();
+                //AManager<DesignManager>.getInstance().guardPositions.Clear();
+                //AManager<DesignManager>.getInstance().selectedBlocks.Clear();
             }
         }
 
@@ -434,6 +434,12 @@ namespace Plugin.Squancher.AdventureMod
             /*
             if (Input.GetKeyDown(KeyCode.J))
             {
+                if (this.controller.GetComponent<ControlPlayer>().selectedObject != null)
+                {
+                    
+                    APlayableEntity entity = this.controller.GetComponent<ControlPlayer>().selectedObject.GetComponent<APlayableEntity>();
+                    entity.hitpoints = 0;
+                }
                 MessengerManager.SpawnMessenger();
                 //BattleManager.TransferLoot();
                 //BattleOverMenu.OpenWindow();

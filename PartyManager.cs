@@ -135,6 +135,7 @@ namespace Plugin.Squancher.AdventureMod
         {
             PartyManager partyManager = new PartyManager();
             APlayableEntity[] array = Enumerable.ToArray<APlayableEntity>(Enumerable.Where<APlayableEntity>(Enumerable.OfType<APlayableEntity>(AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units), (APlayableEntity unit) => unit.isAlive()));
+            bool destroyed = false;
             partyManager.SortUnits(array);
 
             for (int i = 0; i < array.Length; i++)
@@ -143,32 +144,27 @@ namespace Plugin.Squancher.AdventureMod
 
                 if (aPlayableEntity.isAlive())
                 {
-                    if (trade == 0)
+                    switch (trade)
                     {
-                        if (i == 0)
-                        {
-                            draftees.Clear();
-                        }
-                        draftees.Add(new Draftees() { UnitId = i, uName = aPlayableEntity.unitName, Health = aPlayableEntity.hitpoints, Experience = aPlayableEntity.getProfession().currentXP, isEnlisted = false });
-                        continue;
-                    }
-
-                    if (draftees.Exists(x => x.uName == aPlayableEntity.unitName))//new Draftees { uName = aPlayableEntity.unitName }))
-                    {
-                        //set to for transfer
-                        if (trade == 1)
-                        {
+                        case 0:
+                            if (i == 0)
+                            {
+                                draftees.Clear();
+                            }
+                            draftees.Add(new Draftees() { UnitId = i, uName = aPlayableEntity.unitName, Health = aPlayableEntity.hitpoints, Experience = aPlayableEntity.getProfession().currentXP, isEnlisted = false });
+                            continue;
+                        case 1:
                             draftees.Find(x => x.uName == aPlayableEntity.unitName).Experience = aPlayableEntity.getProfession().currentXP;
                             draftees.Find(x => x.uName == aPlayableEntity.unitName).Health = aPlayableEntity.hitpoints;
-                        }
-                        //transfer
-                        if (trade == 2)
-                        {
-                            if (draftees.Find(x => x.uName == aPlayableEntity.unitName).Health <= aPlayableEntity.hitpoints)
+                            continue;
+                        case 2:
+                            if (!draftees.Exists(x => x.uName == aPlayableEntity.unitName))//new Draftees { uName = aPlayableEntity.unitName }))
                             {
-                                aPlayableEntity.hitpoints = draftees.Find(x => x.uName == aPlayableEntity.unitName).Health;
+                                aPlayableEntity.Destroy();
+                                destroyed = true;
+                                continue;
                             }
-                            if (draftees.Find(x => x.uName == aPlayableEntity.unitName).Health >= aPlayableEntity.hitpoints)
+                            if (draftees.Find(x => x.uName == aPlayableEntity.unitName).Health != aPlayableEntity.hitpoints)
                             {
                                 aPlayableEntity.hitpoints = draftees.Find(x => x.uName == aPlayableEntity.unitName).Health;
                             }
@@ -176,15 +172,13 @@ namespace Plugin.Squancher.AdventureMod
                             {
                                 aPlayableEntity.getProfession().setExperience(draftees.Find(x => x.uName == aPlayableEntity.unitName).Experience);
                             }
-                        }
-                    }
-                    else
-                    {
-                        //note: i might need to clear() and re establish draftees list here
-                        aPlayableEntity.Destroy();
-                        ManageParty(0);
+                            continue;
                     }
                 }
+            }
+            if (destroyed)
+            {
+                ManageParty(0);
             }
         }
 
