@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
-using System.Timers;
 using Timber_and_Stone;
+using Timber_and_Stone.Profession.Undead;
 using Timber_and_Stone.API.Event;
-using Timber_and_Stone.Event;
 using Timber_and_Stone.Invasion;
 using Timber_and_Stone.Utility;
 using System.Linq;
@@ -25,7 +24,7 @@ namespace Plugin.Squancher.AdventureMod
         public Rect location;
         private Vector2? lastPivot;
         private Vector2 scrollPosition;
-        ALivingEntity currentMonster;
+        SkeletonEntity currentMonster;
         public PartyMenu()
         {
         }
@@ -525,8 +524,9 @@ namespace Plugin.Squancher.AdventureMod
                 */
                 if (!bPlacingMonster)
                 {
-                    ALivingEntity skeletonEntity = AManager<AssetManager>.getInstance().InstantiateUnit<SkeletonEntity>();
+                    SkeletonEntity skeletonEntity = AManager<AssetManager>.getInstance().InstantiateUnit<SkeletonEntity>();
                     Transform transform = skeletonEntity.transform;
+                    skeletonEntity.addProfession(new Infantry(skeletonEntity, 100));
                     skeletonEntity.maxHP = 100f;
                     skeletonEntity.hitpoints = 100f;
                     skeletonEntity.fatigue = 0.875f;
@@ -535,12 +535,6 @@ namespace Plugin.Squancher.AdventureMod
                     skeletonEntity.unitName = skeletonEntity.GetType().ToString();
                     bPlacingMonster = true;
                     currentMonster = skeletonEntity;
-                    
-                    //this does not work!
-                    List<IInvasionGenerator> generators = new List<IInvasionGenerator>();
-                    generators.Add(WorldManager.getInstance().InvasionGenerators.First(x => x is SkeletonInvasionGenerator));
-                    IInvasionGenerator invasionGenerator = generators.WeightedRandomElement(element => element.getPriority());
-                    WorldManager.getInstance().SpawnInvasion(invasionGenerator.CreateInvasion(100));
                 }
             }
             
