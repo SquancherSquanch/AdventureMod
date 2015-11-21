@@ -396,6 +396,7 @@ namespace Plugin.Squancher.AdventureMod
             {
                 allEntities.Destroy();
             }
+            //WorldManager.getInstance().LoadGame(PluginMain.File + ".tass.gz");
             //WorldManager.getInstance().LoadGame(PluginMain.File);
             //base.StartCoroutine(this.LoadGame(0.1f, saveFileData.file));
             this.gamesave = GameSave.Create("saves/" + PluginMain.File + ".tass.gz");
@@ -409,8 +410,8 @@ namespace Plugin.Squancher.AdventureMod
             WorldManager.getInstance().bedRock.localScale = new Vector3((float)(chunkSize.x * worldSize.x - 1), 0f, (float)(chunkSize.z * worldSize.z - 1)) * voxelSize * 0.1f;
             WorldManager.getInstance().bedRock.position = new Vector3(0f, (float)worldSize.y * -0.1f - 0.1f, 0f);
             WorldManager.getInstance().topHeight = (float)worldSize.y * 0.1f - 0.1f;
-            GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
-            GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
+            //GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
+            //GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
             AManager<GUIManager>.getInstance().inGame = true;
             QuestManager.isOnQuest = false;
             QuestManager.quest.Clear();
@@ -455,9 +456,9 @@ namespace Plugin.Squancher.AdventureMod
         {
             int eNum = 0;
 
-            foreach (ALivingEntity entity in UnitManager.getInstance().allUnits)
+            foreach (ALivingEntity entity in (ALivingEntity[])FindObjectsOfType(typeof(ALivingEntity)))
             {
-                if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(entity.faction) != Alignment.Ally)
+                if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(entity.faction) == Alignment.Enemy)
                 {
                     if (isFighting && isPlaced)
                     {
@@ -469,16 +470,22 @@ namespace Plugin.Squancher.AdventureMod
                     }
                 }
             }
-            GUIManager.getInstance().DrawTextCenteredWhite(new Rect(0f, Screen.height / 10, 200f, 35f), "Enemy Count:" + eNum);
+            EnemyCount = eNum;
+            //GUIManager.getInstance().DrawTextCenteredWhite(new Rect(0f, Screen.height / 10, 200f, 35f), "Enemy Count:" + eNum);
             return eNum;
         }
 
-        public static void GetEnemyTarget()
+        public static void GetEnemyTarget(ALivingEntity otherEntity = null)
         {
-            PartyManager partyManager = new PartyManager();
             APlayableEntity[] array = Enumerable.ToArray<APlayableEntity>(Enumerable.Where<APlayableEntity>(Enumerable.OfType<APlayableEntity>(AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units), (APlayableEntity unit) => unit.isAlive()));
-            partyManager.SortUnits(array);
-            int i = UnityEngine.Random.Range(0, PartyManager.PartySize -1);
+            PartyManager.getInstance().SortUnits(array);
+            int i = UnityEngine.Random.Range(0, array.Length - 1);
+
+            if (otherEntity != null)
+            {
+                otherEntity.interruptTask(new TaskAttack(otherEntity, array[i].transform));
+
+            }
             foreach (ALivingEntity entity in UnitManager.getInstance().allUnits)
             {
                 if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(entity.faction) != Alignment.Ally)
@@ -502,8 +509,7 @@ namespace Plugin.Squancher.AdventureMod
                     if (timesinceload >= 10f)
                     {
                         isArrivingTown = false;
-                        PartyManager partyManager = new PartyManager();
-                        partyManager.ManageParty(2);
+                        PartyManager.getInstance().ManageParty(2);
                         TransferLoot();
                         timesinceload = 0;
                     }
@@ -512,7 +518,7 @@ namespace Plugin.Squancher.AdventureMod
 
             if (isFighting && isPlaced)
             {
-                //GUIManager.getInstance().DrawTextCenteredWhite(new Rect(0f, Screen.height / 10, 200f, 35f), "Enemy Count:" + EnemyCount);
+                GUIManager.getInstance().DrawTextCenteredWhite(new Rect(0f, Screen.height / 10, 200f, 35f), "Enemy Count:" + EnemyCount);
                 if (GetEnemyRemaining() <= 0)
                 {
                     if (!isBattleOver)

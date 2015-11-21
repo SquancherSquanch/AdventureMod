@@ -45,7 +45,7 @@ namespace Plugin.Squancher.AdventureMod
         // Should also override == and != operators.
     }
 
-    public class PartyManager : MonoBehaviour
+    public class PartyManager : AManager<PartyManager>, IEventListener
     {
         private bool reverseSort;
 
@@ -171,6 +171,12 @@ namespace Plugin.Squancher.AdventureMod
                             if (draftees.Find(x => x.uName == aPlayableEntity.unitName).Experience != aPlayableEntity.getProfession().currentXP)
                             {
                                 aPlayableEntity.getProfession().setExperience(draftees.Find(x => x.uName == aPlayableEntity.unitName).Experience);
+                            }
+                            continue;
+                        case 3:
+                            if (!draftees.Exists(x => x.uName == aPlayableEntity.unitName))//new Draftees { uName = aPlayableEntity.unitName }))
+                            {
+                                draftees.Add(new Draftees() { UnitId = i, uName = aPlayableEntity.unitName, Health = aPlayableEntity.hitpoints, Experience = aPlayableEntity.getProfession().currentXP, isEnlisted = false });
                             }
                             continue;
                     }

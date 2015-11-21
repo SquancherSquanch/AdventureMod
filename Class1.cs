@@ -4,6 +4,7 @@ using Timber_and_Stone.Tasks;
 using Timber_and_Stone.Utility;
 using UnityEngine;
 using Timber_and_Stone;
+using Timber_and_Stone.Blocks;
 using Timber_and_Stone.API;
 using Timber_and_Stone.API.Event;
 using Timber_and_Stone.Event;
@@ -36,6 +37,7 @@ namespace Plugin.Squancher.AdventureMod
             GUIManager.getInstance().gameObject.AddComponent(typeof(PartyManager));
             GUIManager.getInstance().gameObject.AddComponent(typeof(Draftees));
             GUIManager.getInstance().gameObject.AddComponent(typeof(Messenger));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(Bandit));
 
         }
 
@@ -45,18 +47,13 @@ namespace Plugin.Squancher.AdventureMod
             EventManager.getInstance().Register(this);
             GUIManager.getInstance().AddTextLine("Adventure Mod Registered Events");
         }
-
+        
         [EventHandler(Priority.Monitor)]
         public void onEntityDeathMonitor(EventEntityDeath evt)
         {
-            string deadDraftee = evt.getUnit().unitName;
-            //if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(evt.getUnit().faction) != Alignment.Ally)
 
-            /*
             if (!evt.getUnit().GetType().Equals(typeof(HumanEntity)))
-            {
-                GUIManager.getInstance().AddTextLine("" + evt.getUnit().GetType());
-                
+            {   
                 if (BattleManager.EnemyCount <= 0 && BattleManager.isFighting)
                 {
                     BattleManager.Reward();
@@ -67,35 +64,50 @@ namespace Plugin.Squancher.AdventureMod
                     BattleManager.EnemyCount--;
                 }
             }
-            else 
+            else
             {
-                PartyMenu.draftees.Remove(PartyMenu.draftees.Find(x => x.uName == deadDraftee));
-            }
-            */
-            if (MessengerManager.messengerEntity != null)
-            {
-                if (deadDraftee == MessengerManager.messengerEntity.unitName)
+                HumanEntity bandit = (HumanEntity)evt.getUnit();
+
+                if (PartyManager.draftees.Exists(x => x.uName == evt.getUnit().unitName))
+                {
+                    
+                    if (bandit.getProfession().getProfessionName() != "Bandit")
+                    {
+                        if (PartyManager.draftees.Find(x => x.uName == evt.getUnit().unitName).isEnlisted)
+                        {
+                            if (PartyManager.PartySize > 0)
+                            {
+                                PartyManager.PartySize--;
+                            }
+                        }
+                        PartyManager.draftees.Remove(PartyManager.draftees.Find(x => x.uName == evt.getUnit().unitName));
+                        if (BattleManager.isInTown)
+                        {
+                            PartyManager partyManager = new PartyManager();
+                            partyManager.ManageParty(2);
+                        }
+                    }
+                    else
+                    {
+                        evt.getUnit().Destroy();
+                    }
+                }
+                else
                 {
                     evt.getUnit().Destroy();
                 }
             }
-            if (PartyManager.draftees.Exists(x => x.uName == deadDraftee))
+
+            if (MessengerManager.messengerEntity != null)
             {
-                
-                if (PartyManager.draftees.Find(x => x.uName == evt.getUnit().unitName).isEnlisted)
+                if (evt.getUnit().unitName == MessengerManager.messengerEntity.unitName)
                 {
-                    if (PartyManager.PartySize > 0)
-                    {
-                        PartyManager.PartySize--;
-                    }
-                }
-                PartyManager.draftees.Remove(PartyManager.draftees.Find(x => x.uName == deadDraftee));
-                if (BattleManager.isInTown)
-                {
-                    PartyManager partyManager = new PartyManager();
-                    partyManager.ManageParty(2);
+                    evt.getUnit().Destroy();
                 }
             }
+
+           
+            
         }
 
         [EventHandler(Priority.Monitor)]
@@ -114,6 +126,14 @@ namespace Plugin.Squancher.AdventureMod
         {
             if (evt.invasion.getName() == "wolf" || evt.invasion.getName() == "spider" || evt.invasion.getName() == "skeleton" || evt.invasion.getName() == "necromancer" || evt.invasion.getName() == "goblin")
             {
+                float roll = UnityEngine.Random.value;
+                GUIManager.getInstance().AddTextLine("bandit roll " + roll);
+                if (roll < 0.25f)
+                {
+                    evt.invasion.CancelInvasion();
+                    MessengerManager.SpawnBandit();
+                    return;
+                }
                 if (BattleManager.isFighting && BattleManager.isPlaced)
                 {
                     GUIManager.getInstance().AddTextLine("A " + evt.invasion.getName() + " has found you!");
@@ -134,7 +154,6 @@ namespace Plugin.Squancher.AdventureMod
 
             if (!AdventureMap.isMapCreated)
             {
-                MessengerManager.day = AManager<TimeManager>.getInstance().day;
                 AManager<MapManager>.getInstance().CreateWorldMap();
                 AdventureMap.isMapCreated = true;
             }

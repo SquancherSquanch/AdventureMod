@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Plugin.Squancher.AdventureMod</RootNamespace>
-    <AssemblyName>plugin</AssemblyName>
+    <AssemblyName>plugin2</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -31,8 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\Timber and Stone_Data\Managed\Assembly-CSharp.dll</HintPath>
+    <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Program Files Ext\Timber and Stone - Copy\saves\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="CoherentNoise, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -42,9 +43,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>..\Timber and Stone_Data\Managed\UnityEngine.dll</HintPath>
@@ -52,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdventureMap.cs" />
+    <Compile Include="Bandit.cs" />
     <Compile Include="BattleManager.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="DrafteesMenu.cs" />

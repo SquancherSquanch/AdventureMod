@@ -1,27 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using Timber_and_Stone.Tasks;
-using Timber_and_Stone.Utility;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Timers;
 using Timber_and_Stone;
-using Timber_and_Stone.API;
 using Timber_and_Stone.API.Event;
 using Timber_and_Stone.Event;
-using Timber_and_Stone.API.Event.Task;
-using Timber_and_Stone.Profession.Human;
-using EventHandler = Timber_and_Stone.API.Event.EventHandler;
+using Timber_and_Stone.Invasion;
+using Timber_and_Stone.Utility;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Plugin.Squancher.AdventureMod 
 {
-    public class PartyMenu : MonoBehaviour
+    public class PartyMenu : MonoBehaviour, IEventListener
     {
-        private bool _open, bShowMilitary, bShowCivilian, bSeekTarget;
-        private bool  openDraft;
+        private bool _open, bShowMilitary, bShowCivilian, bSeekTarget, bPlacingMonster;
+        private bool  openDraft, toggle;
         private ControlPlayer controller;
         QuestManager questManager = new QuestManager();
-        PartyManager partyManager = new PartyManager();
-        
+        public Transform[] entityHighlight;
 
         public Rect windowRect;
         private float intendedWindowWidth = 490f;
@@ -30,7 +25,7 @@ namespace Plugin.Squancher.AdventureMod
         public Rect location;
         private Vector2? lastPivot;
         private Vector2 scrollPosition;
-
+        ALivingEntity currentMonster;
         public PartyMenu()
         {
         }
@@ -72,7 +67,12 @@ namespace Plugin.Squancher.AdventureMod
             this._open = true;
             if (PartyManager.draftees.Count <= 0)
             {
-                partyManager.ManageParty(0);
+                PartyManager.getInstance().ManageParty(0);
+            }
+
+            if (PartyManager.draftees.Count < WorldManager.getInstance().PlayerFaction.units.Count)
+            {
+                PartyManager.getInstance().ManageParty(3);
             }
         }
 
@@ -132,7 +132,7 @@ namespace Plugin.Squancher.AdventureMod
             }
 
             APlayableEntity[] array = Enumerable.ToArray<APlayableEntity>(Enumerable.Where<APlayableEntity>(Enumerable.OfType<APlayableEntity>(AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units), (APlayableEntity unit) => unit.isAlive()));
-            partyManager.SortUnits(array);
+            PartyManager.getInstance().SortUnits(array);
             Rect rect = new Rect(0f + num3 - 45f, 0f + num4 - 50, 165f, 10f);
             this.Rotate(new Vector2(rect.xMin + rect.width / 2f, rect.yMin + rect.height / 2f));
             Rect location3 = new Rect(rect.x, rect.y, 60f, 2f);
@@ -413,10 +413,10 @@ namespace Plugin.Squancher.AdventureMod
                 CloseWindow();
                 return;
             }
-            if (!GUIManager.getInstance().inGame)
+            /*if (!GUIManager.getInstance().inGame)
             {
                 return;
-            }
+            }*/
             if (!IsOpen())
             {
                 return;
@@ -429,22 +429,195 @@ namespace Plugin.Squancher.AdventureMod
             this.windowRect.y = Mathf.Clamp(this.windowRect.y, 40f, (float)Screen.height - this.windowRect.height - 2f);
         }
 
+
+        /*
+        foreach (ALivingEntity unit in (ALivingEntity[])FindObjectsOfType(typeof(ALivingEntity))) {
+                    if (playerFaction.getAlignmentToward(unit.faction) == Alignment.Enemy) {
+                        unit.hitpoints = 0;
+                        unit.spottedTimer = float.PositiveInfinity;
+                    }
+                }
+
+        **************************************
+            		public APlayableEntity GetTrader()
+		{
+			foreach (APlayableEntity current in AManager<WorldManager>.getInstance().controllerObj.GetComponent<ControlPlayer>().units.OfType<APlayableEntity>())
+			{
+				if (current.isAlive() && current.getProfession() is Trader)
+				{
+					Coordinate coordinate = current.coordinate;
+					if (AManager<ChunkManager>.getInstance().chunkArray[coordinate.chunk.x, coordinate.chunk.y - 1, coordinate.chunk.z].blocks[coordinate.block.x, coordinate.block.y, coordinate.block.z].isHall)
+					{
+						return current;
+					}
+				}
+			}
+			return null;
+		}
+        */
+
+
+        public void PlaceMonster()
+        {
+            RaycastHit raycastHit;
+            Vector3[] array2;
+            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out raycastHit))
+            {
+                if (raycastHit.transform.tag == "PickPlane")
+                {
+                    Vector3 normalized = (raycastHit.point - Camera.main.transform.position).normalized;
+                    array2 = AManager<ChunkManager>.getInstance().Pick(raycastHit.point, normalized, true);
+                }
+                else
+                {
+                    array2 = AManager<ChunkManager>.getInstance().Pick(Camera.main.transform.position, Camera.main.ScreenPointToRay(Input.mousePosition).direction, true);
+                    if (array2 == null)
+                    {
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                array2 = AManager<ChunkManager>.getInstance().Pick(Camera.main.transform.position, Camera.main.ScreenPointToRay(Input.mousePosition).direction, true);
+                if (array2 == null)
+                {
+                    return;
+                }
+            }
+            Vector3 a = new Vector3(array2[1].x, array2[1].y, array2[1].z);
+            Vector3 vector = a + array2[2];
+            Vector3 vector2 = AManager<ChunkManager>.getInstance().GetWorldPosition(array2[0], vector);
+            vector2 += new Vector3(0f, -0.2f / 2f, 0f);
+
+            currentMonster.transform.position = vector2;
+            currentMonster.coordinate = Coordinate.FromWorld(currentMonster.transform.position);
+            WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().entityHighlight.renderer.enabled = true;
+            WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().entityHighlight.position = currentMonster.transform.position + new Vector3(0f, 0.01f, 0f);
+        }
+
         public void Update()
         {
+            
+            if (Input.GetKeyDown(KeyCode.BackQuote))
+            {
+                toggle = toggle == false ? true : false;
+                if (toggle)
+                {
+                    GUIManager.getInstance().inStartMenu = false;
+                    GUIManager.getInstance().startMenu = "New6";
+                    GUIManager.getInstance().inGame = false;
+                }
+                else
+                {
+                    GUIManager.getInstance().inStartMenu = false;
+                    GUIManager.getInstance().inGame = true;
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.J))
+            {
+                /*AManager<GUIManager>.getInstance().inGame = false;
+                AManager<GUIManager>.getInstance().inStartMenu = true;
+                AManager<GUIManager>.getInstance().startMenu = "New7";
+                AManager<GUIManager>.getInstance().mapSelectorObj = (Transform)UnityEngine.Object.Instantiate(AManager<GUIManager>.getInstance().mapSelector, Vector3.zero, Quaternion.identity);
+                AManager<GUIManager>.getInstance().mapSelectorObj.GetComponent<StartSelector>().selecting = true;
+                */
+                if (!bPlacingMonster)
+                {
+                    ALivingEntity skeletonEntity = AManager<AssetManager>.getInstance().InstantiateUnit<SkeletonEntity>();
+                    Transform transform = skeletonEntity.transform;
+                    skeletonEntity.maxHP = 100f;
+                    skeletonEntity.hitpoints = 100f;
+                    skeletonEntity.fatigue = 0.875f;
+                    skeletonEntity.transform.position = new Vector3(0, 200, 0);
+                    skeletonEntity.faction = AManager<WorldManager>.getInstance().UndeadFaction;
+                    skeletonEntity.unitName = skeletonEntity.GetType().ToString();
+                    bPlacingMonster = true;
+                    currentMonster = skeletonEntity;
+                    
+                    //this does not work!
+                    List<IInvasionGenerator> generators = new List<IInvasionGenerator>();
+                    generators.Add(WorldManager.getInstance().InvasionGenerators.First(x => x is SkeletonInvasionGenerator));
+                    IInvasionGenerator invasionGenerator = generators.WeightedRandomElement(element => element.getPriority());
+                    WorldManager.getInstance().SpawnInvasion(invasionGenerator.CreateInvasion(100));
+                }
+            }
+            
+            if (bPlacingMonster)
+            {
+                PlaceMonster();
+            }
+
+            if (Input.GetKeyUp(KeyCode.Mouse0))
+            {
+                if (bPlacingMonster)
+                {
+                    bPlacingMonster = false;
+                    currentMonster = null;
+                }
+            }
             /*
             if (Input.GetKeyDown(KeyCode.J))
             {
-                if (this.controller.GetComponent<ControlPlayer>().selectedObject != null)
+
+                int i = 0;
+
+                foreach (HumanEntity unit in (HumanEntity[])FindObjectsOfType(typeof(HumanEntity)))
                 {
-                    
-                    APlayableEntity entity = this.controller.GetComponent<ControlPlayer>().selectedObject.GetComponent<APlayableEntity>();
-                    entity.hitpoints = 0;
+                    if (WorldManager.getInstance().PlayerFaction.getAlignmentToward(unit.faction) == Alignment.Ally)
+                    {
+                        i++;
+                        WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().entityHighlight.renderer.enabled = true;
+                        WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().entityHighlight.position = unit.transform.position + new Vector3(0f, 0.01f, 0f);
+                        entityHighlight[i] = WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().entityHighlight;
+                        entityHighlight[i].renderer.enabled = true;
+                        entityHighlight[i].position = unit.transform.position + new Vector3(0f, 0.01f, 0f);
+                        //WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().entityHighlight.renderer.enabled = true;
+                        //WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().entityHighlight.position = unit.transform.position + new Vector3(0f, 0.01f, 0f);
+                        GUIManager.getInstance().AddTextLine("" + unit.peekTaskStack().ToString());
+                        WorkFarmBlock farmBlock = unit.getTaskStackTask <WorkFarmBlock> ();
+                        if (unit.taskStackContains(typeof(WorkFarmBlock)))
+                        {
+                            GUIManager.getInstance().AddTextLine("" + unit.unitName + " has farmed.");
+                        }
+
+                        this.entityHighlight[0].renderer.enabled = (WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().selectedObject != null && WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().selectedObject is HumanEntity);
+                        if (this.entityHighlight[0].renderer.enabled)
+                        {
+                            this.entityHighlight[0].position = this.selectedObject.transform.position + new Vector3(0f, 0.01f, 0f);
+                        }
+                    }
+                    GUIManager.getInstance().AddTextLine("" + WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().entityHighlight.childCount);
                 }
-                MessengerManager.SpawnMessenger();
-                //BattleManager.TransferLoot();
-                //BattleOverMenu.OpenWindow();
             }
-            
+
+            if (Input.GetKeyDown(KeyCode.J))
+            {
+                AManager<ChunkManager>.getInstance().DeleteChunkData();
+                GUIManager.getInstance().selectedBlock = null;
+                int river = UnityEngine.Random.Range(0, 100);
+                float forest = UnityEngine.Random.Range(0f, 0.5f);
+                AManager<WorldManager>.getInstance().settlementName = "Miners Fiasco";
+                AManager<WorldManager>.getInstance().animalSheep = 0f;
+                AManager<WorldManager>.getInstance().animalBoar = 0f;
+                AManager<WorldManager>.getInstance().animalChicken = 0f;
+                float mountain = UnityEngine.Random.Range(0f, 0.1f);
+                AManager<WorldManager>.getInstance().mountains = 0.5f;
+                AManager<WorldManager>.getInstance().trees = 0.2f + forest;
+                AManager<WorldManager>.getInstance().river = river <= 50 ? false : true;
+                AManager<WorldManager>.getInstance().coast = false;
+                AManager<WorldManager>.getInstance().CreateNewGame(AManager<WorldManager>.getInstance().settlementName, new Vector3i(4, 48, 4));
+                //AManager<WorldManager>.getInstance().CreateNewWorldUnits(new Vector3(15,34,15));
+                GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
+                GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
+                AManager<GUIManager>.getInstance().inGame = false;
+                AManager<GUIManager>.getInstance().inStartMenu = true;
+                AManager<GUIManager>.getInstance().startMenu = "New7";
+                AManager<GUIManager>.getInstance().mapSelectorObj = (Transform)UnityEngine.Object.Instantiate(AManager<GUIManager>.getInstance().mapSelector, Vector3.zero, Quaternion.identity);
+                AManager<GUIManager>.getInstance().mapSelectorObj.GetComponent<StartSelector>().selecting = true;
+            }
+
             if (Input.GetKeyDown(KeyCode.N))
             {
                 toggle = (toggle == false) ? true : false;
@@ -458,7 +631,7 @@ namespace Plugin.Squancher.AdventureMod
                 }
                 //BattleManager.Reward(1);
             }
-             
+
 
             if (Input.GetKeyDown(KeyCode.M))
             {
@@ -482,7 +655,7 @@ namespace Plugin.Squancher.AdventureMod
 
                 GUIManager.getInstance().AddTextLine("" + AManager<ResourceManager>.getInstance().getWealth());
             }
-            
+
             if (Input.GetKeyDown(KeyCode.K))
             {
 
@@ -495,6 +668,7 @@ namespace Plugin.Squancher.AdventureMod
                 }
             }
             */
+
             if (Input.GetKeyDown(KeyCode.Tab))
             {
                 if (IsOpen())

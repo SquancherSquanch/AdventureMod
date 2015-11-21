@@ -62,6 +62,7 @@ namespace Plugin.Squancher.AdventureMod
                     BattleManager.isPlaced = true;
                     GUIManager.getInstance().inGame = true;
                     BattleManager.GetEnemyTarget();
+                    BattleManager.GetEnemyRemaining();
                     CloseWindow();
                     /************
                     * BattleGui here! when initiated take the inGame back in all functions
