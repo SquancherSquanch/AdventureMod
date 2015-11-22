@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
 using Timber_and_Stone;
 using Timber_and_Stone.Profession.Undead;
-using Timber_and_Stone.API.Event;
-using Timber_and_Stone.Invasion;
-using Timber_and_Stone.Utility;
-using System.Linq;
 using System.Collections.Generic;
-
+using Timber_and_Stone.API.Event;
+using System.Linq;
+// put in managed folder
+// reflexor C:\Users\Bobisback\AppData\Local\Microsoft\VisualStudio\14.0\Extensions\jilzlq1t.4tl
 namespace Plugin.Squancher.AdventureMod 
 {
     public class PartyMenu : MonoBehaviour, IEventListener
@@ -24,6 +23,7 @@ namespace Plugin.Squancher.AdventureMod
         public Rect location;
         private Vector2? lastPivot;
         private Vector2 scrollPosition;
+        public List<Vector3> selectedBlocks;
         SkeletonEntity currentMonster;
         public PartyMenu()
         {
@@ -396,12 +396,6 @@ namespace Plugin.Squancher.AdventureMod
                 AManager<TimeManager>.getInstance().pause();
                 TransitionScreen.OpenWindow();
                 AdventureMap.OpenWindow();
-                DesignManager designManager = new DesignManager();
-                //designManager.farmZones.Clear();
-                //designManager.livestockZones.Clear();
-                //designManager.roadZones.Clear();
-                //AManager<DesignManager>.getInstance().guardPositions.Clear();
-                //AManager<DesignManager>.getInstance().selectedBlocks.Clear();
             }
         }
 
@@ -412,10 +406,10 @@ namespace Plugin.Squancher.AdventureMod
                 CloseWindow();
                 return;
             }
-            /*if (!GUIManager.getInstance().inGame)
+            if (!GUIManager.getInstance().inGame)
             {
                 return;
-            }*/
+            }
             if (!IsOpen())
             {
                 return;
@@ -495,6 +489,7 @@ namespace Plugin.Squancher.AdventureMod
             WorldManager.getInstance().controllerObj.GetComponent<ControlPlayer>().entityHighlight.position = currentMonster.transform.position + new Vector3(0f, 0.01f, 0f);
         }
 
+
         public void Update()
         {
             
@@ -516,12 +511,32 @@ namespace Plugin.Squancher.AdventureMod
 
             if (Input.GetKeyDown(KeyCode.J))
             {
+
+
+                /*
+                foreach (PatrolRoute pr in DesignManager.getInstance().patrolRoutes)
+                {
+                    foreach (PatrolPoint pp in pr.patrolPoints)
+                    {
+                        Destroy(pp.markerObj.gameObject);
+                    }
+                        pr.patrolPoints.Clear();
+                        DesignManager.getInstance().patrolRoutes.Clear();
+                }
+                */
+                //DesignManager.getInstance().guardPositions.GetType().Clear();
+                //DesignManager.getInstance().guardPositions.TrimExcess();
+
+                //GUIManager.getInstance().AddTextLine("" + DesignManager.getInstance().farmZones[0].GetComponent<FarmDesignation>().coordinates[0]);
+
+
                 /*AManager<GUIManager>.getInstance().inGame = false;
                 AManager<GUIManager>.getInstance().inStartMenu = true;
                 AManager<GUIManager>.getInstance().startMenu = "New7";
                 AManager<GUIManager>.getInstance().mapSelectorObj = (Transform)UnityEngine.Object.Instantiate(AManager<GUIManager>.getInstance().mapSelector, Vector3.zero, Quaternion.identity);
                 AManager<GUIManager>.getInstance().mapSelectorObj.GetComponent<StartSelector>().selecting = true;
-                */
+                
+
                 if (!bPlacingMonster)
                 {
                     SkeletonEntity skeletonEntity = AManager<AssetManager>.getInstance().InstantiateUnit<SkeletonEntity>();
@@ -535,9 +550,9 @@ namespace Plugin.Squancher.AdventureMod
                     skeletonEntity.unitName = skeletonEntity.GetType().ToString();
                     bPlacingMonster = true;
                     currentMonster = skeletonEntity;
-                }
+                }*/
             }
-            
+
             if (bPlacingMonster)
             {
                 PlaceMonster();

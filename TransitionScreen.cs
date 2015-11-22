@@ -57,18 +57,19 @@ namespace Plugin.Squancher.AdventureMod
             {
                 if (GUIManager.getInstance().DrawButton(new Rect(Screen.width / 2 - 100, location6.yMin + 130f, 200f, 34f), "Ready"))
                 {
+                    CloseWindow();
                     BattleManager.isPlacingUnits = false;
                     BattleManager.isPlacingUnits2 = false;
                     BattleManager.isPlaced = true;
                     GUIManager.getInstance().inGame = true;
                     BattleManager.GetEnemyTarget();
                     BattleManager.GetEnemyRemaining();
-                    CloseWindow();
+                    BattleManager.RemoveDesignations();
                     /************
                     * BattleGui here! when initiated take the inGame back in all functions
                     * Make a in battle !inGame comparison.
                     ************/
-                    
+
                 }
             }
         }
@@ -76,6 +77,10 @@ namespace Plugin.Squancher.AdventureMod
         public void OnGUI()
         {
             if (GUIManager.getInstance().inGame)
+            {
+                return;
+            }
+            if (TransitionScreen.IsOpen())
             {
                 return;
             }
@@ -342,7 +347,6 @@ namespace Plugin.Squancher.AdventureMod
                 countdown++;
                 if (countdown >= 30f)
                 {
-                    
                     BattleManager.SendPartyOnQuest();
                     AdventureMap.CloseWindow();
                     CloseWindow();

@@ -33,7 +33,7 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Program Files Ext\Timber and Stone - Copy\saves\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\Program Files Ext\Timber and Stone - Copy\Timber and Stone_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="CoherentNoise, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

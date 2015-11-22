@@ -75,7 +75,6 @@ namespace Plugin.Squancher.AdventureMod
             humanEntity.spottedTimer = 600000f;
             humanEntity.addProfession(new Messenger(humanEntity, 0));
             humanEntity.SetProfession(typeof(Messenger));
-            //humanEntity.preferences["migrant.leaving"] = true;
             humanEntity.interruptTask(new TaskMoveToHall(humanEntity));
             UnitManager.getInstance().visitors.Add(humanEntity.transform);
             messengerEntity = humanEntity;
@@ -100,6 +99,8 @@ namespace Plugin.Squancher.AdventureMod
                 {
                     break;
                 }
+                int i = UnityEngine.Random.Range(0, 100);
+                i = i < 50 ? 0 : 1;
                 IBlock block = spawnPositions.ElementAt(0);
                 spawnPositions.Remove(block);
                 //vector = AManager<DesignManager>.getInstance().edgeRoads[UnityEngine.Random.Range(0, AManager<DesignManager>.getInstance().edgeRoads.Count - 1)].world + Vector3.up * AManager<ChunkManager>.getInstance().voxelSize;
@@ -109,7 +110,7 @@ namespace Plugin.Squancher.AdventureMod
                 HumanEntity humanEntity = AManager<AssetManager>.getInstance().InstantiateUnit<HumanEntity>();
                 int gender = UnityEngine.Random.Range(0, 100);
                 humanEntity.gender = gender <= 50 ? APlayableEntity.Gender.Female : APlayableEntity.Gender.Male;
-                humanEntity.unitName = UnitManager.getInstance().RandomName(gender <= 50 ? true : false);
+                humanEntity.unitName = "Bandit " + UnitManager.getInstance().RandomName(gender <= 50 ? true : false);
                 humanEntity.fatigue = 1f;
                 humanEntity.hunger = 0f;
                 humanEntity.maxHP = 100f;
@@ -117,16 +118,21 @@ namespace Plugin.Squancher.AdventureMod
                 humanEntity.coordinate = block.coordinate;
                 humanEntity.faction = AManager<WorldManager>.getInstance().NeutralHostileFaction;
                 humanEntity.spottedTimer = 600000f;
-                humanEntity.addProfession(new Bandit(humanEntity, (int)AManager<ResourceManager>.getInstance().getWealth() * 100));
-                humanEntity.SetProfession(typeof(Bandit));
-                //humanEntity.preferences["migrant.leaving"] = true;
-                //humanEntity.interruptTask(new TaskMoveToHall(humanEntity));
-                UnitManager.getInstance().visitors.Add(humanEntity.transform);
-                //messengerEntity = humanEntity;
+                if (i == 0)
+                {
+                    humanEntity.addProfession(new Archer(humanEntity, (int)AManager<ResourceManager>.getInstance().getWealth() * 100));
+                    humanEntity.SetProfession(typeof(Archer));
+                }
+                if (i == 1)
+                {
+                    humanEntity.addProfession(new Infantry(humanEntity, (int)AManager<ResourceManager>.getInstance().getWealth() * 100));
+                    humanEntity.SetProfession(typeof(Infantry));
+                }
+                //UnitManager.getInstance().visitors.Add(humanEntity.transform);
                 GUIManager.getInstance().AddTextLine("Bandits have come for blood!", humanEntity.transform, true);
                 if (weapons > 500)
                 {
-                    if (Bandit.image == 1)
+                    if (i == 1)
                     {
                     
                         humanEntity.inventory.Add(Resource.FromID(GUIManager.getInstance().weaponsSortType[4]), 1);     // 1-4
@@ -135,7 +141,7 @@ namespace Plugin.Squancher.AdventureMod
                         humanEntity.inventory.Add(Resource.FromID(GUIManager.getInstance().armorSortType[16]), 1);      //feet 14-16
                         humanEntity.inventory.Add(Resource.FromID(GUIManager.getInstance().armorSortType[20]), 1);      //shield 17-20
                     }
-                    if (Bandit.image == 0)
+                    if (i == 0)
                     {
                         humanEntity.inventory.Add(Resource.FromID(GUIManager.getInstance().weaponsSortType[8]), 1);     // 5-8
                         humanEntity.inventory.Add(Resource.FromID(GUIManager.getInstance().weaponsSortType[14]), 30);   // 13-15
@@ -147,7 +153,7 @@ namespace Plugin.Squancher.AdventureMod
                 }
                 else
                 {
-                    if (Bandit.image == 1)
+                    if (i == 1)
                     {
 
                         humanEntity.inventory.Add(Resource.FromID(GUIManager.getInstance().weaponsSortType[(int)UnityEngine.Random.Range(1,2)]), 1);     // 1-4
@@ -159,7 +165,7 @@ namespace Plugin.Squancher.AdventureMod
                             humanEntity.inventory.Add(Resource.FromID(GUIManager.getInstance().armorSortType[(int)UnityEngine.Random.Range(17, 20)]), 1);      //shield 17-20
                         }
                     }
-                    if (Bandit.image == 0)
+                    if (i == 0)
                     {
                         humanEntity.inventory.Add(Resource.FromID(GUIManager.getInstance().weaponsSortType[(int)UnityEngine.Random.Range(5, 7)]), 1);     // 5-8
                         humanEntity.inventory.Add(Resource.FromID(GUIManager.getInstance().weaponsSortType[13]), 20);   // 13-15

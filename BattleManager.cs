@@ -4,12 +4,6 @@ using Timber_and_Stone.Tasks;
 using Timber_and_Stone.Utility;
 using UnityEngine;
 using Timber_and_Stone;
-using Timber_and_Stone.API;
-using Timber_and_Stone.API.Event;
-using Timber_and_Stone.Event;
-using Timber_and_Stone.API.Event.Task;
-using Timber_and_Stone.Profession.Human;
-using EventHandler = Timber_and_Stone.API.Event.EventHandler;
 using System.Linq;
 
 namespace Plugin.Squancher.AdventureMod 
@@ -350,6 +344,67 @@ namespace Plugin.Squancher.AdventureMod
             rewards.Clear();
         }
 
+        public static Coordinate[] getMiningPoolBlocks()
+        {
+            Coordinate[] array = new Coordinate[DesignManager.getInstance().minePool.blocks.Count];
+            DesignManager.getInstance().minePool.blocks.Keys.CopyTo(array, 0);
+            return array;
+        }
+
+        public static void RemoveDesignations()
+        {
+            for (int i = 0; i < DesignManager.getInstance().roadCoords.Count; i++)
+            {
+                Coordinate coordinate = DesignManager.getInstance().roadCoords[i];
+                AManager<DesignationManager>.getInstance().Unset(coordinate);
+            }
+
+            for (int i = 0; i < DesignManager.getInstance().blocksInBuildPool(); i++)
+            {
+                Coordinate coordinate = DesignManager.getInstance().getBuildPoolBlocks()[i];
+                AManager<DesignationManager>.getInstance().Unset(coordinate);
+            }
+
+            for (int i = 0; i < DesignManager.getInstance().blocksInMiningPool(); i++)
+            {
+                Coordinate coordinate = getMiningPoolBlocks()[i];
+                AManager<DesignationManager>.getInstance().Unset(coordinate);
+            }
+
+            for (int i = 0; i < DesignManager.getInstance().farmZones.Count; i++)
+            {
+                for (int j = 0; j < DesignManager.getInstance().farmZones[i].GetComponent<FarmDesignation>().coordinates.Count; j++)
+                {
+                    Coordinate coordinate = DesignManager.getInstance().farmZones[i].GetComponent<FarmDesignation>().coordinates[j];
+                    AManager<DesignationManager>.getInstance().Unset(coordinate);
+                }
+            }
+
+            for (int i = 0; i < DesignManager.getInstance().livestockZones.Count; i++)
+            {
+                for (int j = 0; j < DesignManager.getInstance().livestockZones[i].GetComponent<LivestockDesignation>().coordinates.Count; j++)
+                {
+                    Coordinate coordinate = DesignManager.getInstance().livestockZones[i].GetComponent<LivestockDesignation>().coordinates[j];
+                    AManager<DesignationManager>.getInstance().Unset(coordinate);
+                }
+            }
+
+            for (int i = 0; i < DesignManager.getInstance().hallZone.GetComponent<HallDesignation>().coordinates.Count; i++)
+            {
+                Coordinate coordinate = DesignManager.getInstance().hallZone.GetComponent<HallDesignation>().coordinates[i];
+                AManager<DesignationManager>.getInstance().Unset(coordinate);
+            }
+            
+            foreach (GuardPoint gp in DesignManager.getInstance().guardPositions)
+            {
+                Destroy(gp.gameObject);
+            }
+            GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().patrolroute.RemoveRoute();
+            
+            DesignManager.getInstance().patrolRoutes.Clear();
+            DesignManager.getInstance().guardPositions.Clear();
+        }
+
         public void LoadBattle()
         {
             AManager<ChunkManager>.getInstance().DeleteChunkData();
@@ -364,7 +419,8 @@ namespace Plugin.Squancher.AdventureMod
             float mountain = UnityEngine.Random.Range(0f, 0.1f);
             AManager<WorldManager>.getInstance().mountains = river <= 50 ? 0f + mountain : 0.05f;
             AManager<WorldManager>.getInstance().trees = 0.2f + forest;
-            AManager<WorldManager>.getInstance().river = river <= 50 ? false : true ;
+            AManager<WorldManager>.getInstance().river = false;
+            //AManager<WorldManager>.getInstance().river = river <= 50 ? false : true ;
             AManager<WorldManager>.getInstance().coast = false;
             AManager<WorldManager>.getInstance().CreateNewGame(AManager<WorldManager>.getInstance().settlementName, new Vector3i(2, 48, 2));
             GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().SwitchCamera();
@@ -383,8 +439,6 @@ namespace Plugin.Squancher.AdventureMod
             num += 100f * (float)AManager<WorldManager>.getInstance().PlayerFaction.LiveUnitCount();
             num += 50f * (float)AManager<TimeManager>.getInstance().day;
             AManager<WorldManager>.getInstance().SpawnInvasion(Mathf.FloorToInt(num));
-
-            BattleStartMenu.OpenWindow();
         }
 
         public void LoadHome()
