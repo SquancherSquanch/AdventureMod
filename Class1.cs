@@ -24,13 +24,14 @@ namespace Plugin.Squancher.AdventureMod
         {
             worldManager = WorldManager.getInstance();
             GUIManager.getInstance().AddTextLine("Adventure Mod Loaded");
-            GUIManager.getInstance().gameObject.AddComponent(typeof(AdventureMap));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(TransitionScreen));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(PartyMenu));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(BattleStartMenu));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(BattleOverMenu));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(MessengerMenu));
-            GUIManager.getInstance().gameObject.AddComponent(typeof(QuestMenu));
+            GUIManager.getInstance().gameObject.AddComponent(typeof(AdventureMap)); //192
+            GUIManager.getInstance().gameObject.AddComponent(typeof(TransitionScreen)); //191
+            GUIManager.getInstance().gameObject.AddComponent(typeof(PartyMenu)); //190
+            GUIManager.getInstance().gameObject.AddComponent(typeof(DrafteesMenu)); //197
+            GUIManager.getInstance().gameObject.AddComponent(typeof(BattleStartMenu)); //193
+            GUIManager.getInstance().gameObject.AddComponent(typeof(BattleOverMenu)); //194
+            GUIManager.getInstance().gameObject.AddComponent(typeof(MessengerMenu)); //195
+            GUIManager.getInstance().gameObject.AddComponent(typeof(QuestMenu)); //196
             GUIManager.getInstance().gameObject.AddComponent(typeof(BattleManager));
             GUIManager.getInstance().gameObject.AddComponent(typeof(MessengerManager));
             GUIManager.getInstance().gameObject.AddComponent(typeof(QuestManager));

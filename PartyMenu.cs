@@ -4,14 +4,13 @@ using Timber_and_Stone.Profession.Undead;
 using System.Collections.Generic;
 using Timber_and_Stone.API.Event;
 using System.Linq;
-// put in managed folder
-// reflexor C:\Users\Bobisback\AppData\Local\Microsoft\VisualStudio\14.0\Extensions\jilzlq1t.4tl
-namespace Plugin.Squancher.AdventureMod 
+
+namespace Plugin.Squancher.AdventureMod
 {
     public class PartyMenu : MonoBehaviour, IEventListener
     {
         private bool _open, bShowMilitary, bShowCivilian, bSeekTarget, bPlacingMonster;
-        private bool  openDraft, toggle;
+        private bool openDraft, toggle;
         private ControlPlayer controller;
         QuestManager questManager = new QuestManager();
         public Transform[] entityHighlight;
@@ -60,7 +59,7 @@ namespace Plugin.Squancher.AdventureMod
             GUIUtility.RotateAroundPivot(arg_2A_0, vector2.GetValueOrDefault());
             this.lastPivot = default(Vector2?);
         }
-        
+
         public void OpenWindow()
         {
             this._open = true;
@@ -88,19 +87,19 @@ namespace Plugin.Squancher.AdventureMod
 
         public void RenderWindow(int windowID)
         {
-            if ( bShowCivilian == true )
+            if (bShowCivilian == true)
             {
-                    bShowMilitary = false;
+                bShowMilitary = false;
             }
 
             if (bShowMilitary == true)
             {
-                    bShowCivilian = false;
+                bShowCivilian = false;
             }
 
             float num = 25f;
             float num2 = 9f;
-            
+
             location = new Rect(0f, 0f, this.windowRect.width, this.windowRect.height);
             if (location.Contains(Event.current.mousePosition))
             {
@@ -151,7 +150,7 @@ namespace Plugin.Squancher.AdventureMod
             }
             Rect rect2 = new Rect(7f, 0f + num4 - 20, 225f, 25f);
             GUIManager.getInstance().DrawTextCenteredWhite(rect2, "Party Members");
-                
+
             GUIManager.getInstance().DrawLineBlack(new Rect(num2, num4 + 10f, this.windowRect.width, 2f));
             num3 = 2f;
             num4 = 123f;
@@ -370,8 +369,8 @@ namespace Plugin.Squancher.AdventureMod
 
             if (GUIManager.getInstance().DrawButton(new Rect(500f - 157f, 280f, 142f, 32f), "Send Party"))
             {
-                    
-                if(PartyManager.PartySize <= 0)
+
+                if (PartyManager.PartySize <= 0)
                 {
                     GUIManager.getInstance().AddTextLine("Can't leave for battle with no troops!");
                     return;
@@ -387,7 +386,7 @@ namespace Plugin.Squancher.AdventureMod
                     GUIManager.getInstance().AddTextLine("Please wait while game loads:" + timeremaining);
                     return;
                 }
-                    
+
                 this.CloseWindow();
                 GUIManager.getInstance().inGame = false;
                 GUIManager.getInstance().inStartMenu = true;
@@ -414,7 +413,7 @@ namespace Plugin.Squancher.AdventureMod
             {
                 return;
             }
-            
+
             this.windowRect.width = Mathf.Min(this.intendedWindowWidth, (float)(Screen.width - 4));
             this.windowRect = GUI.Window(190, this.windowRect, new GUI.WindowFunction(this.RenderWindow), string.Empty, GUIManager.getInstance().hiddenButtonStyle);
             GUI.FocusWindow(190);
@@ -492,7 +491,7 @@ namespace Plugin.Squancher.AdventureMod
 
         public void Update()
         {
-            
+
             if (Input.GetKeyDown(KeyCode.BackQuote))
             {
                 toggle = toggle == false ? true : false;

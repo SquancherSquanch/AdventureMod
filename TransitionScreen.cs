@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Timber_and_Stone.Tasks;
-using Timber_and_Stone.Utility;
-using UnityEngine;
-using Timber_and_Stone;
-using Timber_and_Stone.API;
-using Timber_and_Stone.API.Event;
-using Timber_and_Stone.Event;
-using Timber_and_Stone.API.Event.Task;
-using Timber_and_Stone.Profession.Human;
-using EventHandler = Timber_and_Stone.API.Event.EventHandler;
-using System.Linq;
+﻿using UnityEngine;
 
 namespace Plugin.Squancher.AdventureMod
 {
@@ -49,7 +37,6 @@ namespace Plugin.Squancher.AdventureMod
             }
             Rect location6 = new Rect((float)(Screen.width / 2 - 270), 32f, 580f, 180f);
             GUIManager.getInstance().DrawWindow(location6, "Fight Initiated!", false);
-            //GUIManager.getInstance().DrawWindow(location6, "" + GUIManager.getInstance().controllerObj.GetComponent<ControlPlayer>().WorldPositionAtMouse(), false);
             GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 30f, location6.width - 16f, 110f), "Left click to place a unit.");
             GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 60f, location6.width - 16f, 110f), "E/Q to rotate unit.");
             GUIManager.getInstance().DrawTextCenteredBlack(new Rect(location6.xMin + 8f, location6.yMin + 90f, location6.width - 16f, 110f), "TAB to replace unit.");
@@ -67,7 +54,7 @@ namespace Plugin.Squancher.AdventureMod
                     BattleManager.RemoveDesignations();
                     /************
                     * BattleGui here! when initiated take the inGame back in all functions
-                    * Make a in battle !inGame comparison.
+                    * Make an (inbattle !inGame) comparison.
                     ************/
 
                 }
